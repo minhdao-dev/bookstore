@@ -12,6 +12,8 @@ import com.bookstore.order.dto.OrderLineItemResponse;
 import com.bookstore.order.entity.Order;
 import com.bookstore.order.entity.OrderLineItem;
 import com.bookstore.order.entity.OrderStatus;
+import com.bookstore.order.entity.OwnershipType;
+import com.bookstore.order.exception.InvalidOwnershipTypeException;
 import com.bookstore.order.exception.InvalidProductTypeException;
 import com.bookstore.order.exception.ItemAlreadyInCartException;
 import com.bookstore.order.exception.OrderLineItemNotFoundException;
@@ -55,11 +57,16 @@ public class CartService {
             throw new InvalidProductTypeException("Only digital products can be added to cart at this stage");
         }
 
+        OwnershipType ownershipType = request.ownershipType() != null ? request.ownershipType() : OwnershipType.PURCHASE;
+        if (ownershipType == OwnershipType.SUBSCRIPTION) {
+            throw new InvalidOwnershipTypeException("Subscription is not supported through the cart");
+        }
+
         if (orderLineItemRepository.findByOrderIdAndProductVariantId(cartId, request.productVariantId()).isPresent()) {
             throw new ItemAlreadyInCartException();
         }
 
-        OrderLineItem lineItem = new OrderLineItem(cart, variant, request.quantity(), variant.getPrice());
+        OrderLineItem lineItem = new OrderLineItem(cart, variant, request.quantity(), variant.getPrice(), ownershipType);
         orderLineItemRepository.save(lineItem);
 
         recalculateTotal(cart);
@@ -115,6 +122,7 @@ public class CartService {
                 item.getProductVariant().getBook().getTitle(),
                 item.getQuantity(),
                 item.getUnitPrice(),
+                item.getOwnershipType(),
                 item.getFulfillmentStatus()
         );
     }

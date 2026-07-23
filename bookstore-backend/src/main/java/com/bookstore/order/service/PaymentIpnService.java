@@ -1,5 +1,6 @@
 package com.bookstore.order.service;
 
+import com.bookstore.entitlement.service.EntitlementService;
 import com.bookstore.order.entity.Order;
 import com.bookstore.order.entity.OrderStatus;
 import com.bookstore.order.entity.PaymentTransaction;
@@ -24,6 +25,7 @@ public class PaymentIpnService {
     private final PaymentGateway paymentGateway;
     private final OrderRepository orderRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
+    private final EntitlementService entitlementService;
 
     @Transactional
     public Map<String, String> processIpn(Map<String, String> params) {
@@ -60,6 +62,7 @@ public class PaymentIpnService {
         if (result.paymentSuccess()) {
             order.setStatus(OrderStatus.PAID);
             transaction.setStatus(PaymentTransactionStatus.SUCCESS);
+            entitlementService.grantForOrder(order);
         } else {
             order.setStatus(OrderStatus.FAILED);
             transaction.setStatus(PaymentTransactionStatus.FAILED);

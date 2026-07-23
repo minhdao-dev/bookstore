@@ -87,6 +87,7 @@ public class OrderService {
                 item.getProductVariant().getBook().getTitle(),
                 item.getQuantity(),
                 item.getUnitPrice(),
+                item.getOwnershipType(),
                 item.getFulfillmentStatus()
         );
     }

@@ -40,6 +40,10 @@ public class OrderLineItem {
     @Column(nullable = false)
     private int quantity = 1;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ownership_type", nullable = false)
+    private OwnershipType ownershipType = OwnershipType.PURCHASE;
+
     @Column(name = "unit_price", nullable = false)
     private BigDecimal unitPrice;
 
@@ -50,11 +54,12 @@ public class OrderLineItem {
     protected OrderLineItem() {
     }
 
-    public OrderLineItem(Order order, ProductVariant productVariant, int quantity, BigDecimal unitPrice) {
+    public OrderLineItem(Order order, ProductVariant productVariant, int quantity, BigDecimal unitPrice, OwnershipType ownershipType) {
         this.order = order;
         this.productVariant = productVariant;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
+        this.ownershipType = ownershipType;
     }
 
     @Override
