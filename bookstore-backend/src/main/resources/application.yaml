@@ -7,3 +7,7 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+app:
+  jwt:
+    secret: ${JWT_SECRET:this-is-a-dev-only-placeholder-secret-change-me-32chars+}
+    expiration-ms: 1800000
