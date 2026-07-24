@@ -76,6 +76,13 @@ public class Entitlement {
         this.grantedAt = Instant.now();
     }
 
+    public boolean isCurrentlyValid() {
+        if (status != EntitlementStatus.ACTIVE) {
+            return false;
+        }
+        return expiresAt == null || expiresAt.isAfter(Instant.now());
+    }
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

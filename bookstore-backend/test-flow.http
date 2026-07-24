@@ -98,3 +98,17 @@ Content-Type: application/epub+zip
 ### 10. Lấy access URL (customer, cần entitlement active)
 GET http://localhost:8080/api/content/variants/{{variantId}}/access-url
 Authorization: Bearer {{token}}
+
+### 11. Xem tủ sách
+GET http://localhost:8080/api/library
+Authorization: Bearer {{token}}
+
+### 12. Cập nhật tiến độ đọc
+PUT http://localhost:8080/api/library/variants/{{variantId}}/progress
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "position": "epubcfi(/6/4[chap01]!/4/2/1:0)",
+  "playbackSpeed": null
+}

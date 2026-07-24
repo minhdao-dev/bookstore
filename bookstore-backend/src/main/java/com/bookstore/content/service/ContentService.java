@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +71,7 @@ public class ContentService {
                 .findByUserIdAndProductVariantIdAndStatus(userId, productVariantId, EntitlementStatus.ACTIVE);
 
         boolean hasValidEntitlement = activeEntitlements.stream()
-                .anyMatch(e -> e.getExpiresAt() == null || e.getExpiresAt().isAfter(Instant.now()));
+                .anyMatch(Entitlement::isCurrentlyValid);
 
         if (!hasValidEntitlement) {
             throw new ContentAccessDeniedException();
