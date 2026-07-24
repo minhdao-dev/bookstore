@@ -14,11 +14,11 @@ public class HashGeneratorTemp {
         Map<String, String> params = new TreeMap<>();
         params.put("vnp_Amount", "5000000");
         params.put("vnp_BankCode", "NCB");
-        params.put("vnp_OrderInfo", "Thanh toan don hang fb2df46e-f90a-4cf8-958f-74c87633bd4a");
+        params.put("vnp_OrderInfo", "Thanh toan don hang c90ce97b-c1d1-481e-a937-1c868709c9f8");
         params.put("vnp_ResponseCode", "00");
         params.put("vnp_TmnCode", "8UMWO5EJ");
         params.put("vnp_TransactionNo", "14226112");
-        params.put("vnp_TxnRef", "fb2df46e-f90a-4cf8-958f-74c87633bd4a");
+        params.put("vnp_TxnRef", "c90ce97b-c1d1-481e-a937-1c868709c9f8");
 
         String signedString = params.entrySet().stream()
                 .map(e -> encode(e.getKey()) + "=" + encode(e.getValue()))

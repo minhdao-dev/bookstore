@@ -3,7 +3,7 @@ POST http://localhost:8080/api/auth/register
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
+  "email": "admin@bookstore.com",
   "password": "12345678"
 }
 
@@ -16,7 +16,7 @@ POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
+  "email": "admin@bookstore.com",
   "password": "12345678"
 }
 
@@ -78,4 +78,23 @@ POST http://localhost:8080/api/orders/checkout
 Authorization: Bearer {{token}}
 
 ### 8. Test IPN (giả lập VNPay gọi về)
-GET http://localhost:8080/api/payment/vnpay/ipn?vnp_Amount=5000000&vnp_BankCode=NCB&vnp_OrderInfo=Thanh%20toan%20don%20hang%20fb2df46e-f90a-4cf8-958f-74c87633bd4a&vnp_ResponseCode=00&vnp_TmnCode=8UMWO5EJ&vnp_TransactionNo=14226112&vnp_TxnRef=fb2df46e-f90a-4cf8-958f-74c87633bd4a&vnp_SecureHash=c5345b7e4dee4e74f13947c65466c6cb2294fe1ad54c228c599f0389384c09098caa21cb689577577932147e96fcac4c8baf1301938193fc7c6c1650b7dda577
+GET http://localhost:8080/api/payment/vnpay/ipn?vnp_Amount=5000000&vnp_BankCode=NCB&
+    vnp_OrderInfo=Thanh%20toan%20don%20hang%20c90ce97b-c1d1-481e-a937-1c868709c9f8&vnp_ResponseCode=00&
+    vnp_TmnCode=8UMWO5EJ&vnp_TransactionNo=14226112&vnp_TxnRef=c90ce97b-c1d1-481e-a937-1c868709c9f8&
+    vnp_SecureHash=b1e6ed4460e9bc50425eb3897633ab8db9bac4adbd0e880081e48d7ddbf2eaff45282c31a4e14a00c04a40b2bdf88315a0e6fd5aa90c002c8424494ac5e8bc83
+
+### 9. Upload content (admin)
+POST http://localhost:8080/api/content/variants/{{variantId}}?contentType=EPUB
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="test.epub"
+Content-Type: application/epub+zip
+
+< ./test.epub
+--WebAppBoundary--
+
+### 10. Lấy access URL (customer, cần entitlement active)
+GET http://localhost:8080/api/content/variants/{{variantId}}/access-url
+Authorization: Bearer {{token}}
