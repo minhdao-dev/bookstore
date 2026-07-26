@@ -1,21 +1,48 @@
-import { Outlet, Link } from "react-router";
+import { Outlet, Link, useNavigate } from "react-router";
+import { useAuth } from "../features/auth/AuthContext";
+import "./MainLayout.css";
 
 export default function MainLayout() {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    function handleLogout() {
+        logout();
+        navigate("/");
+    }
+
     return (
         <div className="app-shell">
-            <header>
-                <Link to="/">BookStore</Link>
-                <nav>
+            <header className="app-header">
+                <Link to="/" className="app-header__brand">BookStore</Link>
+                <nav className="app-nav">
                     <Link to="/">Trang chủ</Link>
-                    {/* sau này thêm: Catalog, Cart, Account */}
+                    <Link to="/catalog">Danh mục</Link>
+                    {user ? (
+                        <>
+                            {user.role === "ADMIN" && <Link to="/admin/books">Quản trị</Link>}
+                            <Link to="/library">Tủ sách</Link>
+                            <Link to="/orders">Đơn hàng</Link>
+                            <Link to="/cart">Giỏ hàng</Link>
+                            <span className="app-nav__user">{user.email}</span>
+                            <button type="button" className="app-nav__logout" onClick={handleLogout}>
+                                Đăng xuất
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login">Đăng nhập</Link>
+                            <Link to="/register">Đăng ký</Link>
+                        </>
+                    )}
                 </nav>
             </header>
 
-            <main>
+            <main className="app-main">
                 <Outlet />
             </main>
 
-            <footer>© BookStore</footer>
+            <footer className="app-footer">© BookStore</footer>
         </div>
     );
 }
