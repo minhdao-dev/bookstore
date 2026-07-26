@@ -13,6 +13,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 public class AuthService {
 
@@ -42,7 +44,7 @@ public class AuthService {
         user.setRole(Role.CUSTOMER);
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().name());
+        String token = jwtService.generateToken(Objects.requireNonNull(user.getId()), user.getEmail(), user.getRole().name());
         return new AuthResponse(token);
     }
 
@@ -54,7 +56,7 @@ public class AuthService {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found: " + request.email()));
 
-        String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().name());
+        String token = jwtService.generateToken(Objects.requireNonNull(user.getId()), user.getEmail(), user.getRole().name());
         return new AuthResponse(token);
     }
 }

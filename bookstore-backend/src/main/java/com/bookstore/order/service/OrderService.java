@@ -15,6 +15,8 @@ import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.order.repository.PaymentTransactionRepository;
 import com.bookstore.payment.PaymentGateway;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,6 +80,24 @@ public class OrderService {
                 order.getCurrency(),
                 order.getCreatedAt()
         );
+    }
+
+    public Page<OrderResponse> getOrderHistory(UUID userId, Pageable pageable) {
+        return orderRepository.findByUserIdAndStatusNot(userId, OrderStatus.DRAFT, pageable)
+                .map(order -> {
+                    List<OrderLineItemResponse> items = orderLineItemRepository.findByOrderId(order.getId()).stream()
+                            .map(this::toLineItemResponse)
+                            .toList();
+
+                    return new OrderResponse(
+                            order.getId(),
+                            order.getStatus(),
+                            items,
+                            order.getTotalAmount(),
+                            order.getCurrency(),
+                            order.getCreatedAt()
+                    );
+                });
     }
 
     private OrderLineItemResponse toLineItemResponse(OrderLineItem item) {

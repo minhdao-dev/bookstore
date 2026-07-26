@@ -79,6 +79,7 @@ public class LibraryService {
         return new LibraryItemResponse(
                 variantId,
                 entitlement.getProductVariant().getBook().getTitle(),
+                entitlement.getProductVariant().getVariantFormat(),
                 entitlement.getOwnershipType(),
                 entitlement.getExpiresAt(),
                 progress != null ? progress.getPosition() : null,
