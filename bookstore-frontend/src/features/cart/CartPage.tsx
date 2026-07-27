@@ -1,20 +1,16 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
-import { getCart, removeCartItem, checkout } from "./cartApi";
+import { Link, useNavigate } from "react-router";
+import { getCart, removeCartItem } from "./cartApi";
 import type { CartResponse } from "./cartTypes";
 import { formatPrice } from "../../lib/format";
+import { ownershipTypeLabel } from "../../lib/labels";
 import "./cart.css";
 
-const OWNERSHIP_LABELS: Record<string, string> = {
-    PURCHASE: "Mua",
-    RENTAL: "Thuê",
-};
-
 export function CartPage() {
+    const navigate = useNavigate();
     const [cart, setCart] = useState<CartResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     function loadCart() {
         setIsLoading(true);
@@ -35,18 +31,6 @@ export function CartPage() {
             loadCart();
         } catch {
             setError("Xóa không thành công, thử lại sau");
-        }
-    }
-
-    async function handleCheckout() {
-        setIsCheckingOut(true);
-        setError(null);
-        try {
-            const result = await checkout();
-            window.location.href = result.paymentUrl;
-        } catch {
-            setError("Không tạo được đơn hàng, thử lại sau");
-            setIsCheckingOut(false);
         }
     }
 
@@ -72,7 +56,7 @@ export function CartPage() {
                                 <div>
                                     <div className="cart-item__title">{item.bookTitle}</div>
                                     <div className="cart-item__meta">
-                                        {OWNERSHIP_LABELS[item.ownershipType] ?? item.ownershipType} · SL {item.quantity}
+                                        {ownershipTypeLabel(item.ownershipType)} · SL {item.quantity}
                                     </div>
                                 </div>
                                 <div className="cart-item__right">
@@ -97,8 +81,8 @@ export function CartPage() {
                             <div style={{ fontSize: "0.8rem", opacity: 0.75 }}>Tổng cộng</div>
                             <div className="cart-summary__total">{formatPrice(cart.totalAmount, cart.currency)}</div>
                         </div>
-                        <button type="button" onClick={handleCheckout} disabled={isCheckingOut}>
-                            {isCheckingOut ? "Đang chuyển tới VNPay..." : "Thanh toán"}
+                        <button type="button" onClick={() => navigate("/checkout")}>
+                            Tiến hành thanh toán
                         </button>
                     </div>
                 </>

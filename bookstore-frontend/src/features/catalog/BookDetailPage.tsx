@@ -110,7 +110,13 @@ export function BookDetailPage() {
                                     </button>
                                 </>
                             ) : (
-                                <span className="variant-card__sku">Sách giấy — sắp hỗ trợ</span>
+                                <button
+                                    type="button"
+                                    disabled={pendingVariantId === variant.id}
+                                    onClick={() => handleAddToCart(variant.id, "PURCHASE")}
+                                >
+                                    Thêm vào giỏ
+                                </button>
                             )}
                         </div>
                     </div>

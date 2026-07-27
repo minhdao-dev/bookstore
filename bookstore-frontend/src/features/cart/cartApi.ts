@@ -1,5 +1,5 @@
 import { apiFetch } from "../../lib/apiClient";
-import type { AddToCartRequest, CartResponse, CheckoutResponse, OrderResponse } from "./cartTypes";
+import type { AddToCartRequest, CartResponse, OrderResponse } from "./cartTypes";
 
 export function getCart(): Promise<CartResponse> {
     return apiFetch<CartResponse>("/api/cart");
@@ -14,10 +14,6 @@ export function addToCart(request: AddToCartRequest): Promise<CartResponse> {
 
 export function removeCartItem(lineItemId: string): Promise<void> {
     return apiFetch<void>(`/api/cart/items/${lineItemId}`, { method: "DELETE" });
-}
-
-export function checkout(): Promise<CheckoutResponse> {
-    return apiFetch<CheckoutResponse>("/api/orders/checkout", { method: "POST" });
 }
 
 export function getOrder(orderId: string): Promise<OrderResponse> {

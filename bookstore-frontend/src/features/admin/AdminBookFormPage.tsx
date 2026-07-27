@@ -333,6 +333,24 @@ export function AdminBookFormPage() {
                                     </div>
                                 )}
                             </div>
+                            {variantForm.productType === "PHYSICAL" && (
+                                <div className="admin-form-row">
+                                    <div className="admin-form-field">
+                                        <label htmlFor="dimensions">Kích thước (DxRxC, cm)</label>
+                                        <input
+                                            id="dimensions"
+                                            placeholder="vd: 20x14x2"
+                                            value={variantForm.dimensions ?? ""}
+                                            onChange={(e) =>
+                                                setVariantForm({
+                                                    ...variantForm,
+                                                    dimensions: e.target.value ? e.target.value : null,
+                                                })
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                            )}
                             <div className="admin-form-actions">
                                 <button type="submit" className="admin-btn">
                                     {editingVariantId ? "Cập nhật variant" : "Thêm variant"}

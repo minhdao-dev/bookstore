@@ -1,0 +1,22 @@
+.checkout-page {
+    width: 100%;
+    max-width: 720px;
+}
+
+.checkout-page h1 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+}
+
+.shipping-address-form__row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+    margin-bottom: 1.2rem;
+}
+
+@media (max-width: 640px) {
+    .shipping-address-form__row {
+        grid-template-columns: 1fr;
+    }
+}

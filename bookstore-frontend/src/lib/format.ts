@@ -10,3 +10,7 @@ export function formatPrice(amount: number, currency: string): string {
 export function formatDate(isoDate: string): string {
     return new Date(isoDate).toLocaleDateString("vi-VN");
 }
+
+export function formatDateTime(isoDate: string): string {
+    return new Date(isoDate).toLocaleString("vi-VN");
+}

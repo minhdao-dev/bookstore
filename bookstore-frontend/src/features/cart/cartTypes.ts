@@ -1,11 +1,24 @@
-export type OwnershipType = "PURCHASE" | "RENTAL";
-export type FulfillmentStatus = "PENDING" | "FULFILLED";
+import type { ProductType } from "../catalog/catalogTypes";
+
+export type OwnershipType = "PURCHASE" | "RENTAL" | "SUBSCRIPTION";
+
+export type FulfillmentStatus =
+    | "PENDING"
+    | "PACKING"
+    | "SHIPPED"
+    | "IN_TRANSIT"
+    | "DELIVERED"
+    | "FULFILLED"
+    | "RETURNED"
+    | "CANCELLED";
+
 export type OrderStatus = "DRAFT" | "PENDING_PAYMENT" | "PAID" | "CANCELLED" | "FAILED";
 
 export interface OrderLineItemResponse {
     id: string;
     productVariantId: string;
     bookTitle: string;
+    productType: ProductType;
     quantity: number;
     unitPrice: number;
     ownershipType: OwnershipType;

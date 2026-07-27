@@ -3,15 +3,8 @@ import { Link, useSearchParams } from "react-router";
 import { getOrder } from "../cart/cartApi";
 import type { OrderResponse } from "../cart/cartTypes";
 import { formatPrice } from "../../lib/format";
+import { orderStatusLabel } from "../../lib/labels";
 import "../cart/cart.css";
-
-const STATUS_LABELS: Record<string, string> = {
-    DRAFT: "Nháp",
-    PENDING_PAYMENT: "Chờ thanh toán",
-    PAID: "Đã thanh toán",
-    CANCELLED: "Đã hủy",
-    FAILED: "Thất bại",
-};
 
 const MAX_RETRIES = 4;
 const RETRY_DELAY_MS = 1500;
@@ -80,7 +73,7 @@ export function PaymentReturnPage() {
             <h1>{isPaid ? "Thanh toán thành công" : "Kết quả thanh toán"}</h1>
 
             <span className={`order-status order-status--${order.status.toLowerCase()}`}>
-                {STATUS_LABELS[order.status] ?? order.status}
+                {orderStatusLabel(order.status)}
             </span>
 
             {!isPaid && order.status === "PENDING_PAYMENT" && (

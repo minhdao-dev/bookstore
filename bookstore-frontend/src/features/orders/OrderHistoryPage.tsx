@@ -2,23 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getOrderHistory } from "./orderHistoryApi";
 import type { OrderResponse } from "../cart/cartTypes";
-import { formatPrice } from "../../lib/format";
+import { formatPrice, formatDateTime } from "../../lib/format";
+import { orderStatusLabel } from "../../lib/labels";
 import "../cart/cart.css";
 import "../catalog/catalog.css";
 
-const STATUS_LABELS: Record<string, string> = {
-    DRAFT: "Nháp",
-    PENDING_PAYMENT: "Chờ thanh toán",
-    PAID: "Đã thanh toán",
-    CANCELLED: "Đã hủy",
-    FAILED: "Thất bại",
-};
-
 const PAGE_SIZE = 10;
-
-function formatDate(isoDate: string): string {
-    return new Date(isoDate).toLocaleString("vi-VN");
-}
 
 export function OrderHistoryPage() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
@@ -79,10 +68,10 @@ export function OrderHistoryPage() {
                                         Đơn #{order.id.slice(0, 8)}
                                     </div>
                                     <div className="cart-item__meta">
-                                        {formatDate(order.createdAt)} · {order.items.length} sản phẩm
+                                        {formatDateTime(order.createdAt)} · {order.items.length} sản phẩm
                                     </div>
                                     <span className={`order-status order-status--${order.status.toLowerCase()}`}>
-                                        {STATUS_LABELS[order.status] ?? order.status}
+                                        {orderStatusLabel(order.status)}
                                     </span>
                                 </div>
                                 <span className="cart-item__price">

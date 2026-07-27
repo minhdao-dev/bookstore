@@ -7,6 +7,7 @@ import { RegisterPage } from "../features/auth/RegisterPage";
 import { CatalogPage } from "../features/catalog/CatalogPage";
 import { BookDetailPage } from "../features/catalog/BookDetailPage";
 import { CartPage } from "../features/cart/CartPage";
+import { CheckoutPage } from "../features/checkout/CheckoutPage";
 import { OrderDetailPage } from "../features/orders/OrderDetailPage";
 import { OrderHistoryPage } from "../features/orders/OrderHistoryPage";
 import { PaymentReturnPage } from "../features/orders/PaymentReturnPage";
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
                 Component: PrivateRoute,
                 children: [
                     { path: "cart", Component: CartPage },
+                    { path: "checkout", Component: CheckoutPage },
                     { path: "orders", Component: OrderHistoryPage },
                     { path: "orders/:orderId", Component: OrderDetailPage },
                     { path: "payment/vnpay-return", Component: PaymentReturnPage },

@@ -1,0 +1,164 @@
+.shipment-card {
+    background: var(--paper-raised);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px rgba(28, 35, 51, 0.08);
+    margin-bottom: 2rem;
+}
+
+.shipment-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+}
+
+.shipment-card__header h2 {
+    font-size: 1.1rem;
+}
+
+.shipment-status {
+    display: inline-block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+}
+
+.shipment-status--packing,
+.shipment-status--shipped,
+.shipment-status--in_transit {
+    background: rgba(184, 134, 59, 0.15);
+    color: var(--brass-dark);
+}
+
+.shipment-status--delivered {
+    background: rgba(47, 69, 56, 0.15);
+    color: #2f4538;
+}
+
+.shipment-status--returned,
+.shipment-status--failed {
+    background: rgba(122, 36, 54, 0.12);
+    color: var(--wine-dark);
+}
+
+.shipment-timeline {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+}
+
+.shipment-timeline__step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+}
+
+.shipment-timeline__step::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: -50%;
+    width: 100%;
+    height: 2px;
+    background: var(--line);
+    z-index: 0;
+}
+
+.shipment-timeline__step:first-child::before {
+    display: none;
+}
+
+.shipment-timeline__dot {
+    display: block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    margin: 0 auto 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.shipment-timeline__step--done {
+    color: var(--brass-dark);
+    font-weight: 600;
+}
+
+.shipment-timeline__step--done .shipment-timeline__dot {
+    background: var(--brass);
+    border-color: var(--brass);
+}
+
+.shipment-timeline__step--done::before {
+    background: var(--brass);
+}
+
+.shipment-card__note {
+    color: var(--wine-dark);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.shipment-card__note--muted {
+    color: var(--ink-soft);
+}
+
+.shipment-card__details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+}
+
+.shipment-card__details>div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.shipment-card__label {
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+}
+
+.shipment-card__return {
+    margin-top: 1.3rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+}
+
+.shipment-card__return-btn {
+    background: transparent;
+    border: 1px solid var(--wine);
+    color: var(--wine);
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.shipment-card__return-btn:hover:not(:disabled) {
+    background: rgba(122, 36, 54, 0.08);
+}
+
+.shipment-card__return-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.shipment-card__hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+}

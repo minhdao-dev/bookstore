@@ -34,12 +34,12 @@ export function updateVariant(
     variantId: string,
     request: ProductVariantRequest
 ): Promise<ProductVariantResponse> {
-    return apiFetch<ProductVariantResponse>(`/api/catalog/variants/${variantId}`, {
+    return apiFetch<ProductVariantResponse>(`/api/catalog/books/variants/${variantId}`, {
         method: "PUT",
         body: JSON.stringify(request),
     });
 }
 
 export function deleteVariant(variantId: string): Promise<void> {
-    return apiFetch<void>(`/api/catalog/variants/${variantId}`, { method: "DELETE" });
+    return apiFetch<void>(`/api/catalog/books/variants/${variantId}`, { method: "DELETE" });
 }
