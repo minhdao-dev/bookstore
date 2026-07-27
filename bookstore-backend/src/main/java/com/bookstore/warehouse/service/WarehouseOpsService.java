@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
@@ -103,6 +104,10 @@ public class WarehouseOpsService {
             }
         } else if (newStatus == ShipmentStatus.RETURNED) {
             inventoryService.restock(order);
+        }
+
+        if (newStatus == ShipmentStatus.DELIVERED) {
+            shipment.setDeliveredAt(Instant.now());
         }
 
         shipment.setStatus(newStatus);

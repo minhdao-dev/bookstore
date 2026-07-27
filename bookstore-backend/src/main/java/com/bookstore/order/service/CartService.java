@@ -9,6 +9,8 @@ import com.bookstore.catalog.repository.ProductVariantRepository;
 import com.bookstore.order.dto.AddToCartRequest;
 import com.bookstore.order.dto.CartResponse;
 import com.bookstore.order.dto.OrderLineItemResponse;
+import com.bookstore.order.dto.ShippingQuoteRequest;
+import com.bookstore.order.dto.ShippingQuoteResponse;
 import com.bookstore.order.entity.Order;
 import com.bookstore.order.entity.OrderLineItem;
 import com.bookstore.order.entity.OrderStatus;
@@ -18,6 +20,7 @@ import com.bookstore.order.exception.ItemAlreadyInCartException;
 import com.bookstore.order.exception.OrderLineItemNotFoundException;
 import com.bookstore.order.repository.OrderLineItemRepository;
 import com.bookstore.order.repository.OrderRepository;
+import com.bookstore.shipping.service.ShippingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +41,7 @@ public class CartService {
     private final OrderLineItemRepository orderLineItemRepository;
     private final ProductVariantRepository productVariantRepository;
     private final UserRepository userRepository;
+    private final ShippingService shippingService;
 
     public CartResponse getCart(UUID userId) {
         Order cart = getOrCreateDraftCart(userId);
@@ -82,6 +86,21 @@ public class CartService {
         return toCartResponse(cart);
     }
 
+    public ShippingQuoteResponse getShippingQuote(UUID userId, ShippingQuoteRequest request) {
+        Order cart = getOrCreateDraftCart(userId);
+        UUID cartId = Objects.requireNonNull(cart.getId(), "Cart order id must not be null after persist");
+
+        List<OrderLineItem> lineItems = orderLineItemRepository.findByOrderId(cartId);
+
+        BigDecimal lineItemsTotal = lineItems.stream()
+                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal shippingFee = shippingService.quotePreview(cart, request.districtId(), request.wardCode());
+
+        return new ShippingQuoteResponse(shippingFee, lineItemsTotal.add(shippingFee));
+    }
+
     Order getOrCreateDraftCart(UUID userId) {
         return orderRepository.findByUserIdAndStatus(userId, OrderStatus.DRAFT)
                 .orElseGet(() -> createDraftCart(userId));
@@ -106,7 +125,7 @@ public class CartService {
 
         return ownershipType;
     }
-    
+
     private void recalculateTotal(Order cart) {
         BigDecimal total = orderLineItemRepository.findByOrderId(cart.getId()).stream()
                 .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))

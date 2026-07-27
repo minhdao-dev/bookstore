@@ -1,4 +1,9 @@
 package com.bookstore.order.dto;
 
-public class ShippingQuoteResponse {
+import java.math.BigDecimal;
+
+public record ShippingQuoteResponse(
+        BigDecimal shippingFee,
+        BigDecimal estimatedTotal
+) {
 }

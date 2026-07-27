@@ -1,6 +1,8 @@
 package com.bookstore.shipping.service;
 
 import com.bookstore.catalog.entity.ProductType;
+import com.bookstore.inventory.exception.InsufficientStockException;
+import com.bookstore.inventory.service.InventoryService;
 import com.bookstore.order.entity.FulfillmentStatus;
 import com.bookstore.order.entity.Order;
 import com.bookstore.order.entity.OrderLineItem;
@@ -10,8 +12,13 @@ import com.bookstore.shipping.ShippingOrderRequest;
 import com.bookstore.shipping.ShippingOrderResult;
 import com.bookstore.shipping.ShippingProvider;
 import com.bookstore.shipping.entity.Shipment;
+import com.bookstore.shipping.entity.ShipmentStatus;
 import com.bookstore.shipping.entity.ShippingCarrier;
 import com.bookstore.shipping.exception.MissingShippingAddressException;
+import com.bookstore.shipping.exception.OrderHasNoShipmentException;
+import com.bookstore.shipping.exception.ReturnAlreadyRequestedException;
+import com.bookstore.shipping.exception.ReturnWindowExpiredException;
+import com.bookstore.shipping.exception.ShipmentNotDeliveredException;
 import com.bookstore.shipping.exception.ShippingConfigurationException;
 import com.bookstore.shipping.repository.ShipmentRepository;
 import com.bookstore.warehouse.entity.Warehouse;
@@ -20,17 +27,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ShippingService {
 
+    private static final int RETURN_WINDOW_DAYS = 7;
+
     private final OrderLineItemRepository orderLineItemRepository;
     private final ShipmentRepository shipmentRepository;
     private final ShippingProvider shippingProvider;
+    private final InventoryService inventoryService;
 
     public boolean hasPhysicalItems(UUID orderId) {
         return orderLineItemRepository.findByOrderId(orderId).stream()
@@ -57,6 +70,35 @@ public class ShippingService {
         );
 
         return shippingProvider.calculateFee(feeRequest);
+    }
+
+    public BigDecimal quotePreview(Order cart, int toDistrictId, String toWardCode) {
+        List<OrderLineItem> physicalItems = physicalLineItems(cart);
+        if (physicalItems.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        OrderLineItem first = physicalItems.getFirst();
+        UUID variantId = Objects.requireNonNull(first.getProductVariant().getId());
+
+        Warehouse warehouse = inventoryService.findAvailableWarehouse(variantId, first.getQuantity())
+                .orElseThrow(() -> new InsufficientStockException(variantId));
+
+        int weightGrams = totalWeightGrams(physicalItems);
+
+        ShippingFeeRequest feeRequest = new ShippingFeeRequest(
+                requireGhnDistrictId(warehouse),
+                requireGhnWardCode(warehouse),
+                toDistrictId,
+                toWardCode,
+                weightGrams
+        );
+
+        return shippingProvider.calculateFee(feeRequest);
+    }
+
+    public Optional<Shipment> findShipmentByOrderId(UUID orderId) {
+        return shipmentRepository.findByOrderId(orderId);
     }
 
     @Transactional
@@ -107,6 +149,27 @@ public class ShippingService {
         for (OrderLineItem lineItem : physicalItems) {
             lineItem.setFulfillmentStatus(FulfillmentStatus.PACKING);
         }
+    }
+
+    @Transactional
+    public void requestReturn(UUID orderId) {
+        Shipment shipment = shipmentRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new OrderHasNoShipmentException(orderId));
+
+        if (shipment.getStatus() != ShipmentStatus.DELIVERED) {
+            throw new ShipmentNotDeliveredException();
+        }
+
+        if (shipment.getReturnRequestedAt() != null) {
+            throw new ReturnAlreadyRequestedException();
+        }
+
+        Instant deliveredAt = shipment.getDeliveredAt();
+        if (deliveredAt == null || deliveredAt.isBefore(Instant.now().minus(RETURN_WINDOW_DAYS, ChronoUnit.DAYS))) {
+            throw new ReturnWindowExpiredException();
+        }
+
+        shipment.setReturnRequestedAt(Instant.now());
     }
 
     private void validateCustomerAddress(Order order) {

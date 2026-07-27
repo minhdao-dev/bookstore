@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -94,6 +95,13 @@ public class InventoryService {
             inventory.setQuantityOnHand(inventory.getQuantityOnHand() + lineItem.getQuantity());
             lineItem.setWarehouse(null);
         }
+    }
+
+    public Optional<Warehouse> findAvailableWarehouse(UUID productVariantId, int quantity) {
+        return inventoryRepository.findByProductVariantId(productVariantId).stream()
+                .filter(inv -> inv.availableQuantity() >= quantity)
+                .map(Inventory::getWarehouse)
+                .findFirst();
     }
 
     private Inventory findInventory(OrderLineItem lineItem, Warehouse warehouse) {

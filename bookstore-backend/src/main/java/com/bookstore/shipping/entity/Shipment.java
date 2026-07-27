@@ -17,6 +17,7 @@ import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -63,6 +64,12 @@ public class Shipment {
 
     @Column(name = "ward_code", length = 20)
     private @Nullable String wardCode;
+
+    @Column(name = "delivered_at")
+    private @Nullable Instant deliveredAt;
+
+    @Column(name = "return_requested_at")
+    private @Nullable Instant returnRequestedAt;
 
     protected Shipment() {
     }

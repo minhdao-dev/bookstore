@@ -16,5 +16,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
     @Query("SELECT i FROM Inventory i WHERE i.productVariant.id = :productVariantId ORDER BY i.quantityOnHand DESC")
     List<Inventory> lockByProductVariantId(UUID productVariantId);
 
+    List<Inventory> findByProductVariantId(UUID productVariantId);
+
     Optional<Inventory> findByProductVariantIdAndWarehouseId(UUID productVariantId, UUID warehouseId);
 }

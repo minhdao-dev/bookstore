@@ -1,16 +1,21 @@
 package com.bookstore.shipping.ghn;
 
+import com.bookstore.shipping.District;
+import com.bookstore.shipping.Province;
 import com.bookstore.shipping.ShippingFeeRequest;
 import com.bookstore.shipping.ShippingOrderRequest;
 import com.bookstore.shipping.ShippingOrderResult;
 import com.bookstore.shipping.ShippingProvider;
+import com.bookstore.shipping.Ward;
 import com.bookstore.shipping.exception.ShippingProviderException;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @Component
 public class GhnShippingProvider implements ShippingProvider {
@@ -42,23 +47,13 @@ public class GhnShippingProvider implements ShippingProvider {
                 "insurance_value", 0
         );
 
-        GhnResponse<Map<String, Object>> response;
-        try {
-            response = restClient.post()
-                    .uri("/v2/shipping-order/fee")
-                    .body(body)
-                    .retrieve()
-                    .body(new ParameterizedTypeReference<>() {
-                    });
-        } catch (Exception ex) {
-            throw new ShippingProviderException("Failed to calculate shipping fee via GHN", ex);
-        }
+        Map<String, Object> data = post("/v2/shipping-order/fee", body);
 
-        if (response == null || response.data() == null || response.data().get("total") == null) {
+        if (data.get("total") == null) {
             throw new ShippingProviderException("GHN did not return a fee", null);
         }
 
-        return new BigDecimal(response.data().get("total").toString());
+        return new BigDecimal(data.get("total").toString());
     }
 
     @Override
@@ -80,26 +75,92 @@ public class GhnShippingProvider implements ShippingProvider {
                 Map.entry("service_type_id", properties.defaultServiceTypeId())
         );
 
-        GhnResponse<Map<String, Object>> response;
-        try {
-            response = restClient.post()
-                    .uri("/v2/shipping-order/create")
-                    .body(body)
-                    .retrieve()
-                    .body(new ParameterizedTypeReference<>() {
-                    });
-        } catch (Exception ex) {
-            throw new ShippingProviderException("Failed to create GHN shipping order", ex);
-        }
+        Map<String, Object> data = post("/v2/shipping-order/create", body);
 
-        if (response == null || response.data() == null || response.data().get("order_code") == null) {
+        if (data.get("order_code") == null) {
             throw new ShippingProviderException("GHN did not return an order_code", null);
         }
 
-        String orderCode = response.data().get("order_code").toString();
-        Object feeValue = response.data().get("total_fee");
+        String orderCode = data.get("order_code").toString();
+        Object feeValue = data.get("total_fee");
         BigDecimal fee = feeValue != null ? new BigDecimal(feeValue.toString()) : BigDecimal.ZERO;
 
         return new ShippingOrderResult(orderCode, fee);
+    }
+
+    @Override
+    public List<Province> getProvinces() {
+        GhnResponse<List<Map<String, Object>>> response = call(() -> restClient.get()
+                .uri("/master-data/province")
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {
+                }), "/master-data/province");
+
+        return requireData(response, "/master-data/province").stream()
+                .map(item -> new Province(toInt(item.get("ProvinceID")), toStr(item.get("ProvinceName"))))
+                .toList();
+    }
+
+    @Override
+    public List<District> getDistricts(int provinceId) {
+        Map<String, Object> body = Map.of("province_id", provinceId);
+        List<Map<String, Object>> data = postList("/master-data/district", body);
+        return data.stream()
+                .map(item -> new District(
+                        toInt(item.get("DistrictID")), toInt(item.get("ProvinceID")), toStr(item.get("DistrictName"))))
+                .toList();
+    }
+
+    @Override
+    public List<Ward> getWards(int districtId) {
+        Map<String, Object> body = Map.of("district_id", districtId);
+        List<Map<String, Object>> data = postList("/master-data/ward", body);
+        return data.stream()
+                .map(item -> new Ward(
+                        toStr(item.get("WardCode")), toInt(item.get("DistrictID")), toStr(item.get("WardName"))))
+                .toList();
+    }
+
+    private Map<String, Object> post(String uri, Object body) {
+        GhnResponse<Map<String, Object>> response = call(() -> restClient.post()
+                .uri(uri)
+                .body(body)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {
+                }), uri);
+        return requireData(response, uri);
+    }
+
+    private List<Map<String, Object>> postList(String uri, Object body) {
+        GhnResponse<List<Map<String, Object>>> response = call(() -> restClient.post()
+                .uri(uri)
+                .body(body)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {
+                }), uri);
+        return requireData(response, uri);
+    }
+
+    private <T> T call(Supplier<T> action, String uri) {
+        try {
+            return action.get();
+        } catch (Exception ex) {
+            throw new ShippingProviderException("Failed to call GHN endpoint: " + uri, ex);
+        }
+    }
+
+    private <T> T requireData(GhnResponse<T> response, String uri) {
+        if (response == null || response.data() == null) {
+            throw new ShippingProviderException("GHN returned empty data for: " + uri, null);
+        }
+        return response.data();
+    }
+
+    private static int toInt(Object value) {
+        return ((Number) value).intValue();
+    }
+
+    private static String toStr(Object value) {
+        return value != null ? value.toString() : null;
     }
 }

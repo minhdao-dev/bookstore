@@ -5,6 +5,7 @@ import com.bookstore.order.dto.CheckoutRequest;
 import com.bookstore.order.dto.CheckoutResponse;
 import com.bookstore.order.dto.OrderLineItemResponse;
 import com.bookstore.order.dto.OrderResponse;
+import com.bookstore.order.dto.OrderShipmentResponse;
 import com.bookstore.order.entity.Order;
 import com.bookstore.order.entity.OrderLineItem;
 import com.bookstore.order.entity.OrderStatus;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -108,6 +110,40 @@ public class OrderService {
                 order.getCurrency(),
                 order.getCreatedAt()
         );
+    }
+
+    public Optional<OrderShipmentResponse> getShipment(UUID userId, UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if (!Objects.equals(order.getUser().getId(), userId)) {
+            throw new OrderNotFoundException(orderId);
+        }
+
+        return shippingService.findShipmentByOrderId(orderId)
+                .map(shipment -> new OrderShipmentResponse(
+                        shipment.getCarrier(),
+                        shipment.getTrackingNumber(),
+                        shipment.getStatus(),
+                        shipment.getShippingFee(),
+                        shipment.getRecipientName(),
+                        shipment.getAddressLine(),
+                        shipment.getCity(),
+                        shipment.getDeliveredAt(),
+                        shipment.getReturnRequestedAt()
+                ));
+    }
+
+    @Transactional
+    public void requestReturn(UUID userId, UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if (!Objects.equals(order.getUser().getId(), userId)) {
+            throw new OrderNotFoundException(orderId);
+        }
+
+        shippingService.requestReturn(orderId);
     }
 
     public Page<OrderResponse> getOrderHistory(UUID userId, Pageable pageable) {

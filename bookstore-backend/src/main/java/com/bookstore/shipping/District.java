@@ -1,4 +1,4 @@
 package com.bookstore.shipping;
 
-public class District {
+public record District(int id, int provinceId, String name) {
 }

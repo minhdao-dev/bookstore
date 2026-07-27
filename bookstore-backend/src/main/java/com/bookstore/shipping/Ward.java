@@ -1,4 +1,4 @@
 package com.bookstore.shipping;
 
-public class Ward {
+public record Ward(String code, int districtId, String name) {
 }
