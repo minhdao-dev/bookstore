@@ -2,9 +2,11 @@ package com.bookstore.catalog.service;
 
 import com.bookstore.catalog.dto.*;
 import com.bookstore.catalog.entity.Book;
+import com.bookstore.catalog.entity.ProductType;
 import com.bookstore.catalog.entity.ProductVariant;
 import com.bookstore.catalog.entity.VariantStatus;
 import com.bookstore.catalog.exception.BookNotFoundException;
+import com.bookstore.catalog.exception.InvalidProductVariantException;
 import com.bookstore.catalog.exception.ProductVariantNotFoundException;
 import com.bookstore.catalog.repository.BookRepository;
 import com.bookstore.catalog.repository.ProductVariantRepository;
@@ -108,6 +110,11 @@ public class CatalogService {
     }
 
     private void applyVariantRequest(ProductVariant variant, ProductVariantRequest request) {
+        if (request.productType() != ProductType.PHYSICAL
+                && (request.weight() != null || request.dimensions() != null)) {
+            throw new InvalidProductVariantException("Weight and dimensions are only allowed for PHYSICAL variants");
+        }
+
         variant.setProductType(request.productType());
         variant.setVariantFormat(request.variantFormat());
         variant.setSku(request.sku());

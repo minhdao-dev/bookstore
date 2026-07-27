@@ -1,5 +1,6 @@
 package com.bookstore.order.controller;
 
+import com.bookstore.order.dto.CheckoutRequest;
 import com.bookstore.order.dto.CheckoutResponse;
 import com.bookstore.order.dto.OrderResponse;
 import com.bookstore.order.service.OrderService;
@@ -21,9 +22,10 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/checkout")
-    public CheckoutResponse checkout(Authentication authentication) {
+    public CheckoutResponse checkout(Authentication authentication,
+                                     @RequestBody(required = false) CheckoutRequest request) {
         UUID userId = UUID.fromString(authentication.getName());
-        return orderService.checkout(userId);
+        return orderService.checkout(userId, request);
     }
 
     @GetMapping

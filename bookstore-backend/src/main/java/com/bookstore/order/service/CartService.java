@@ -14,7 +14,6 @@ import com.bookstore.order.entity.OrderLineItem;
 import com.bookstore.order.entity.OrderStatus;
 import com.bookstore.order.entity.OwnershipType;
 import com.bookstore.order.exception.InvalidOwnershipTypeException;
-import com.bookstore.order.exception.InvalidProductTypeException;
 import com.bookstore.order.exception.ItemAlreadyInCartException;
 import com.bookstore.order.exception.OrderLineItemNotFoundException;
 import com.bookstore.order.repository.OrderLineItemRepository;
@@ -53,14 +52,7 @@ public class CartService {
         ProductVariant variant = productVariantRepository.findById(request.productVariantId())
                 .orElseThrow(() -> new ProductVariantNotFoundException(request.productVariantId()));
 
-        if (variant.getProductType() != ProductType.DIGITAL) {
-            throw new InvalidProductTypeException("Only digital products can be added to cart at this stage");
-        }
-
-        OwnershipType ownershipType = request.ownershipType() != null ? request.ownershipType() : OwnershipType.PURCHASE;
-        if (ownershipType == OwnershipType.SUBSCRIPTION) {
-            throw new InvalidOwnershipTypeException("Subscription is not supported through the cart");
-        }
+        OwnershipType ownershipType = resolveOwnershipType(request, variant);
 
         if (orderLineItemRepository.findByOrderIdAndProductVariantId(cartId, request.productVariantId()).isPresent()) {
             throw new ItemAlreadyInCartException();
@@ -101,6 +93,20 @@ public class CartService {
         return orderRepository.save(order);
     }
 
+    private OwnershipType resolveOwnershipType(AddToCartRequest request, ProductVariant variant) {
+        OwnershipType ownershipType = request.ownershipType() != null ? request.ownershipType() : OwnershipType.PURCHASE;
+
+        if (ownershipType == OwnershipType.SUBSCRIPTION) {
+            throw new InvalidOwnershipTypeException("Subscription is not supported through the cart");
+        }
+
+        if (variant.getProductType() == ProductType.PHYSICAL && ownershipType != OwnershipType.PURCHASE) {
+            throw new InvalidOwnershipTypeException("Physical products can only be purchased, not rented or subscribed");
+        }
+
+        return ownershipType;
+    }
+    
     private void recalculateTotal(Order cart) {
         BigDecimal total = orderLineItemRepository.findByOrderId(cart.getId()).stream()
                 .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
@@ -120,6 +126,7 @@ public class CartService {
                 item.getId(),
                 item.getProductVariant().getId(),
                 item.getProductVariant().getBook().getTitle(),
+                item.getProductVariant().getProductType(),
                 item.getQuantity(),
                 item.getUnitPrice(),
                 item.getOwnershipType(),

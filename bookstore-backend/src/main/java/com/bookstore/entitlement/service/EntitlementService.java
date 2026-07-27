@@ -1,5 +1,6 @@
 package com.bookstore.entitlement.service;
 
+import com.bookstore.catalog.entity.ProductType;
 import com.bookstore.entitlement.entity.Entitlement;
 import com.bookstore.entitlement.repository.EntitlementRepository;
 import com.bookstore.order.entity.FulfillmentStatus;
@@ -29,6 +30,10 @@ public class EntitlementService {
         UUID orderId = Objects.requireNonNull(order.getId(), "Order id must not be null when granting entitlements");
 
         for (OrderLineItem lineItem : orderLineItemRepository.findByOrderId(orderId)) {
+            if (lineItem.getProductVariant().getProductType() != ProductType.DIGITAL) {
+                continue;
+            }
+
             UUID lineItemId = Objects.requireNonNull(lineItem.getId(), "Order line item id must not be null");
 
             if (entitlementRepository.findByOrderLineItemId(lineItemId).isPresent()) {

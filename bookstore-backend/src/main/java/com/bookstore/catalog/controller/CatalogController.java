@@ -1,13 +1,14 @@
 package com.bookstore.catalog.controller;
 
-import com.bookstore.catalog.dto.*;
+import com.bookstore.catalog.dto.BookRequest;
+import com.bookstore.catalog.dto.BookResponse;
+import com.bookstore.catalog.dto.ProductVariantRequest;
+import com.bookstore.catalog.dto.ProductVariantResponse;
 import com.bookstore.catalog.service.CatalogService;
-import com.bookstore.common.exception.AppException;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -73,10 +74,5 @@ public class CatalogController {
     public ResponseEntity<Void> deleteVariant(@PathVariable UUID variantId) {
         catalogService.deleteVariant(variantId);
         return ResponseEntity.noContent().build();
-    }
-
-    @ExceptionHandler(AppException.class)
-    public ProblemDetail handleAppException(AppException ex) {
-        return ProblemDetail.forStatusAndDetail(ex.getStatus(), ex.getMessage());
     }
 }

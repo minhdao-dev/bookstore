@@ -2,5 +2,11 @@ package com.bookstore.order.entity;
 
 public enum FulfillmentStatus {
     PENDING,
-    FULFILLED
+    PACKING,
+    SHIPPED,
+    IN_TRANSIT,
+    DELIVERED,
+    FULFILLED,
+    RETURNED,
+    CANCELLED
 }

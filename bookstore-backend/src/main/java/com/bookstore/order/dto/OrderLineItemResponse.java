@@ -1,5 +1,6 @@
 package com.bookstore.order.dto;
 
+import com.bookstore.catalog.entity.ProductType;
 import com.bookstore.order.entity.FulfillmentStatus;
 import com.bookstore.order.entity.OwnershipType;
 
@@ -10,6 +11,7 @@ public record OrderLineItemResponse(
         UUID id,
         UUID productVariantId,
         String bookTitle,
+        ProductType productType,
         int quantity,
         BigDecimal unitPrice,
         OwnershipType ownershipType,

@@ -1,6 +1,7 @@
 package com.bookstore.order.entity;
 
 import com.bookstore.catalog.entity.ProductVariant;
+import com.bookstore.warehouse.entity.Warehouse;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -50,6 +51,10 @@ public class OrderLineItem {
     @Enumerated(EnumType.STRING)
     @Column(name = "fulfillment_status", nullable = false)
     private FulfillmentStatus fulfillmentStatus = FulfillmentStatus.PENDING;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id")
+    private @Nullable Warehouse warehouse;
 
     protected OrderLineItem() {
     }

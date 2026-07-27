@@ -1,6 +1,7 @@
 package com.bookstore.order.service;
 
 import com.bookstore.entitlement.service.EntitlementService;
+import com.bookstore.inventory.service.InventoryService;
 import com.bookstore.order.entity.Order;
 import com.bookstore.order.entity.OrderStatus;
 import com.bookstore.order.entity.PaymentTransaction;
@@ -10,6 +11,7 @@ import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.order.repository.PaymentTransactionRepository;
 import com.bookstore.payment.PaymentCallbackResult;
 import com.bookstore.payment.PaymentGateway;
+import com.bookstore.shipping.service.ShippingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,8 @@ public class PaymentIpnService {
     private final OrderRepository orderRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final EntitlementService entitlementService;
+    private final InventoryService inventoryService;
+    private final ShippingService shippingService;
 
     @Transactional
     public Map<String, String> processIpn(Map<String, String> params) {
@@ -63,9 +67,11 @@ public class PaymentIpnService {
             order.setStatus(OrderStatus.PAID);
             transaction.setStatus(PaymentTransactionStatus.SUCCESS);
             entitlementService.grantForOrder(order);
+            shippingService.createShipmentForOrder(order);
         } else {
             order.setStatus(OrderStatus.FAILED);
             transaction.setStatus(PaymentTransactionStatus.FAILED);
+            inventoryService.releaseForOrder(order);
         }
         transaction.setGatewayTransactionId(result.gatewayTransactionId());
 

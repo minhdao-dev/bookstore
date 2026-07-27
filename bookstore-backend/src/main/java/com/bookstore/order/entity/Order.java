@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,6 +49,30 @@ public class Order {
     @Column(name = "created_at", nullable = false, updatable = false)
     private @Nullable Instant createdAt;
 
+    @Column(name = "updated_at", nullable = false)
+    private @Nullable Instant updatedAt;
+
+    @Column(name = "ship_recipient_name")
+    private @Nullable String shipRecipientName;
+
+    @Column(name = "ship_phone")
+    private @Nullable String shipPhone;
+
+    @Column(name = "ship_address_line")
+    private @Nullable String shipAddressLine;
+
+    @Column(name = "ship_province_name")
+    private @Nullable String shipProvinceName;
+
+    @Column(name = "ship_district_id")
+    private @Nullable Integer shipDistrictId;
+
+    @Column(name = "ship_ward_code")
+    private @Nullable String shipWardCode;
+
+    @Column(name = "shipping_fee")
+    private @Nullable BigDecimal shippingFee;
+
     protected Order() {
     }
 
@@ -58,7 +83,14 @@ public class Order {
 
     @PrePersist
     void onCreate() {
-        this.createdAt = Instant.now();
+        Instant now = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        this.updatedAt = Instant.now();
     }
 
     @Override

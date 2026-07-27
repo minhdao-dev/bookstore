@@ -40,9 +40,9 @@ public class ProductVariant {
     private String currency;
 
     @Column(precision = 6, scale = 2)
-    private BigDecimal weight;
+    private @Nullable BigDecimal weight;
 
-    private String dimensions;
+    private @Nullable String dimensions;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

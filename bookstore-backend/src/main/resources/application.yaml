@@ -26,3 +26,8 @@ minio:
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket: bookstore-content
   presigned-url-expiry-minutes: 10
+ghn:
+  token: ${GHN_TOKEN:changeme}
+  shop-id: ${GHN_SHOP_ID:changeme}
+  base-url: https://dev-online-gateway.ghn.vn/shiip/public-api
+  default-service-type-id: 2
