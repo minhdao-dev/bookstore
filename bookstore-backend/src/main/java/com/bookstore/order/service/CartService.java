@@ -4,7 +4,9 @@ import com.bookstore.auth.entity.User;
 import com.bookstore.auth.repository.UserRepository;
 import com.bookstore.catalog.entity.ProductType;
 import com.bookstore.catalog.entity.ProductVariant;
+import com.bookstore.catalog.entity.VariantStatus;
 import com.bookstore.catalog.exception.ProductVariantNotFoundException;
+import com.bookstore.catalog.exception.VariantNotAvailableException;
 import com.bookstore.catalog.repository.ProductVariantRepository;
 import com.bookstore.order.dto.AddToCartRequest;
 import com.bookstore.order.dto.CartResponse;
@@ -55,6 +57,10 @@ public class CartService {
 
         ProductVariant variant = productVariantRepository.findById(request.productVariantId())
                 .orElseThrow(() -> new ProductVariantNotFoundException(request.productVariantId()));
+
+        if (variant.getStatus() != VariantStatus.ACTIVE) {
+            throw new VariantNotAvailableException(request.productVariantId());
+        }
 
         OwnershipType ownershipType = resolveOwnershipType(request, variant);
 

@@ -9,10 +9,13 @@ import com.bookstore.shipping.ShippingProvider;
 import com.bookstore.shipping.Ward;
 import com.bookstore.shipping.exception.ShippingProviderException;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -20,13 +23,25 @@ import java.util.function.Supplier;
 @Component
 public class GhnShippingProvider implements ShippingProvider {
 
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration READ_TIMEOUT = Duration.ofSeconds(10);
+
     private final RestClient restClient;
     private final GhnProperties properties;
 
     public GhnShippingProvider(GhnProperties properties) {
         this.properties = properties;
+
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(CONNECT_TIMEOUT)
+                .build();
+
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(READ_TIMEOUT);
+
         this.restClient = RestClient.builder()
                 .baseUrl(properties.baseUrl())
+                .requestFactory(requestFactory)
                 .defaultHeader("Token", properties.token())
                 .defaultHeader("ShopId", properties.shopId())
                 .build();

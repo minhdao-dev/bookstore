@@ -4,6 +4,7 @@ import com.bookstore.catalog.dto.BookRequest;
 import com.bookstore.catalog.dto.BookResponse;
 import com.bookstore.catalog.dto.ProductVariantRequest;
 import com.bookstore.catalog.dto.ProductVariantResponse;
+import com.bookstore.catalog.dto.VariantStatusUpdateRequest;
 import com.bookstore.catalog.service.CatalogService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -67,6 +68,13 @@ public class CatalogController {
     public ProductVariantResponse updateVariant(@PathVariable UUID variantId,
                                                 @Valid @RequestBody ProductVariantRequest request) {
         return catalogService.updateVariant(variantId, request);
+    }
+
+    @PatchMapping("/variants/{variantId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ProductVariantResponse updateVariantStatus(@PathVariable UUID variantId,
+                                                      @Valid @RequestBody VariantStatusUpdateRequest request) {
+        return catalogService.updateVariantStatus(variantId, request.status());
     }
 
     @DeleteMapping("/variants/{variantId}")

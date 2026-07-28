@@ -24,6 +24,7 @@ import com.bookstore.shipping.repository.ShipmentRepository;
 import com.bookstore.warehouse.entity.Warehouse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -101,7 +102,7 @@ public class ShippingService {
         return shipmentRepository.findByOrderId(orderId);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createShipmentForOrder(Order order) {
         List<OrderLineItem> physicalItems = physicalLineItems(order);
         if (physicalItems.isEmpty()) {

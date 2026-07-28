@@ -144,7 +144,9 @@ public class WarehouseOpsService {
         ShipmentStatus oldStatus = shipment.getStatus();
         Order order = shipment.getOrder();
 
-        if (newStatus == ShipmentStatus.SHIPPED && oldStatus == ShipmentStatus.PACKING) {
+        if (newStatus == ShipmentStatus.PACKING && oldStatus == ShipmentStatus.FAILED) {
+            inventoryService.reserveForOrder(order);
+        } else if (newStatus == ShipmentStatus.SHIPPED && oldStatus == ShipmentStatus.PACKING) {
             inventoryService.confirmShipped(order);
         } else if (newStatus == ShipmentStatus.FAILED) {
             if (ALREADY_LEFT_WAREHOUSE.contains(oldStatus)) {

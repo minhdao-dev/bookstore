@@ -9,10 +9,14 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 @RestController
 @RequestMapping("/api/webhooks/ghn")
@@ -24,10 +28,16 @@ public class GhnWebhookController {
     private final WarehouseOpsService warehouseOpsService;
     private final GhnProperties properties;
 
-    @PostMapping("/order-status")
-    public ResponseEntity<Void> handleOrderStatus(@RequestBody GhnWebhookPayload payload) {
+    @PostMapping("/order-status/{secret}")
+    public ResponseEntity<Void> handleOrderStatus(@PathVariable String secret,
+                                                  @RequestBody GhnWebhookPayload payload) {
+        if (!isValidSecret(secret)) {
+            log.warn("Rejected GHN webhook call with invalid secret");
+            return ResponseEntity.notFound().build();
+        }
+
         try {
-            if (payload.shopId() != null && !String.valueOf(payload.shopId()).equals(properties.shopId())) {
+            if (payload.shopId() == null || !String.valueOf(payload.shopId()).equals(properties.shopId())) {
                 log.warn("Ignoring GHN webhook for unrecognized ShopID: {}", payload.shopId());
                 return ResponseEntity.ok().build();
             }
@@ -45,5 +55,11 @@ public class GhnWebhookController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    private boolean isValidSecret(String candidate) {
+        byte[] expected = properties.webhookSecret().getBytes(StandardCharsets.UTF_8);
+        byte[] actual = candidate.getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(expected, actual);
     }
 }

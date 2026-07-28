@@ -34,6 +34,10 @@ public class InventoryService {
                 continue;
             }
 
+            if (lineItem.getWarehouse() != null) {
+                continue;
+            }
+
             UUID productVariantId = Objects.requireNonNull(
                     lineItem.getProductVariant().getId(), "Product variant id must not be null");
 

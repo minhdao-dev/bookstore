@@ -11,6 +11,9 @@ spring:
     multipart:
       max-file-size: 200MB
       max-request-size: 200MB
+  mvc:
+    problemdetails:
+      enabled: true
 app:
   jwt:
     secret: ${JWT_SECRET:this-is-a-dev-only-placeholder-secret-change-me-32chars+}
@@ -31,3 +34,4 @@ ghn:
   shop-id: ${GHN_SHOP_ID:changeme}
   base-url: https://dev-online-gateway.ghn.vn/shiip/public-api
   default-service-type-id: 2
+  webhook-secret: ${GHN_WEBHOOK_SECRET:changeme}

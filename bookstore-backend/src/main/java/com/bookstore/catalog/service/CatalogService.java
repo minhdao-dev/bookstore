@@ -5,11 +5,14 @@ import com.bookstore.catalog.entity.Book;
 import com.bookstore.catalog.entity.ProductType;
 import com.bookstore.catalog.entity.ProductVariant;
 import com.bookstore.catalog.entity.VariantStatus;
+import com.bookstore.catalog.exception.BookInUseException;
 import com.bookstore.catalog.exception.BookNotFoundException;
 import com.bookstore.catalog.exception.InvalidProductVariantException;
+import com.bookstore.catalog.exception.ProductVariantInUseException;
 import com.bookstore.catalog.exception.ProductVariantNotFoundException;
 import com.bookstore.catalog.repository.BookRepository;
 import com.bookstore.catalog.repository.ProductVariantRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -67,7 +70,12 @@ public class CatalogService {
         if (!bookRepository.existsById(bookId)) {
             throw new BookNotFoundException(bookId);
         }
-        bookRepository.deleteById(bookId);
+        try {
+            bookRepository.deleteById(bookId);
+            bookRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new BookInUseException(bookId);
+        }
     }
 
     @Transactional
@@ -93,11 +101,24 @@ public class CatalogService {
     }
 
     @Transactional
+    public ProductVariantResponse updateVariantStatus(UUID variantId, VariantStatus status) {
+        ProductVariant variant = productVariantRepository.findById(variantId)
+                .orElseThrow(() -> new ProductVariantNotFoundException(variantId));
+        variant.setStatus(status);
+        return toVariantResponse(variant);
+    }
+
+    @Transactional
     public void deleteVariant(UUID variantId) {
         if (!productVariantRepository.existsById(variantId)) {
             throw new ProductVariantNotFoundException(variantId);
         }
-        productVariantRepository.deleteById(variantId);
+        try {
+            productVariantRepository.deleteById(variantId);
+            productVariantRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new ProductVariantInUseException(variantId);
+        }
     }
 
     private void applyRequest(Book book, BookRequest request) {
