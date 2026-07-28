@@ -7,6 +7,7 @@ import type { OrderShipmentResponse } from "./orderShipmentTypes";
 import { ShipmentTrackingCard } from "./ShipmentTrackingCard";
 import { formatPrice } from "../../lib/format";
 import { orderStatusLabel, fulfillmentStatusLabel, productTypeLabel } from "../../lib/labels";
+import { getErrorMessage } from "../../lib/apiClient";
 import "../cart/cart.css";
 import "./orders.css";
 
@@ -27,7 +28,7 @@ export function OrderDetailPage() {
                 setOrder(orderResult);
                 setShipment(shipmentResult ?? null);
             })
-            .catch(() => setError("Không tìm thấy đơn hàng này"))
+            .catch((err) => setError(getErrorMessage(err, "Không tìm thấy đơn hàng này")))
             .finally(() => setIsLoading(false));
     }, [orderId]);
 

@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { searchBooks } from "./catalogApi";
 import type { BookResponse } from "./catalogTypes";
 import { formatPrice } from "../../lib/format";
+import { getErrorMessage } from "../../lib/apiClient";
 import "./catalog.css";
 
 const PAGE_SIZE = 12;
@@ -27,9 +28,9 @@ export function CatalogPage() {
                 setBooks(result.content);
                 setTotalPages(result.totalPages);
             })
-            .catch(() => {
+            .catch((err) => {
                 if (cancelled) return;
-                setError("Không tải được danh sách sách, thử lại sau");
+                setError(getErrorMessage(err, "Không tải được danh sách sách, thử lại sau"));
             })
             .finally(() => {
                 if (!cancelled) setIsLoading(false);

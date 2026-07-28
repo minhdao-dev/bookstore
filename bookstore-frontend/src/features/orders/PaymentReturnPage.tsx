@@ -4,6 +4,7 @@ import { getOrder } from "../cart/cartApi";
 import type { OrderResponse } from "../cart/cartTypes";
 import { formatPrice } from "../../lib/format";
 import { orderStatusLabel } from "../../lib/labels";
+import { getErrorMessage } from "../../lib/apiClient";
 import "../cart/cart.css";
 
 const MAX_RETRIES = 4;
@@ -42,9 +43,9 @@ export function PaymentReturnPage() {
                         setIsLoading(false);
                         return;
                     }
-                } catch {
+                } catch (err) {
                     if (cancelled) return;
-                    setError("Không tải được thông tin đơn hàng");
+                    setError(getErrorMessage(err, "Không tải được thông tin đơn hàng"));
                     setIsLoading(false);
                     return;
                 }

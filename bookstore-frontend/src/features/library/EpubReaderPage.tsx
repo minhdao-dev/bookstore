@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import ePub, { type Book, type Rendition } from "epubjs";
 import { getAccessUrl } from "./libraryApi";
 import { updateProgress } from "./libraryApi";
+import { getErrorMessage } from "../../lib/apiClient";
 import "./library.css";
 
 const SAVE_DEBOUNCE_MS = 2000;
@@ -62,9 +63,9 @@ export function EpubReaderPage() {
                 });
 
                 setIsLoading(false);
-            } catch {
+            } catch (err) {
                 if (!cancelled) {
-                    setError("Không tải được nội dung sách");
+                    setError(getErrorMessage(err, "Không tải được nội dung sách"));
                     setIsLoading(false);
                 }
             }

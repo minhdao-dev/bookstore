@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getDistricts, getProvinces, getWards } from "./checkoutApi";
 import type { District, Province, Ward } from "./checkoutTypes";
+import { getErrorMessage } from "../../lib/apiClient";
 import "../admin/admin.css";
 import "./checkout.css";
 
@@ -51,7 +52,7 @@ export function ShippingAddressForm({ value, onChange }: ShippingAddressFormProp
     useEffect(() => {
         getProvinces()
             .then(setProvinces)
-            .catch(() => setError("Không tải được danh sách tỉnh/thành"))
+            .catch((err) => setError(getErrorMessage(err, "Không tải được danh sách tỉnh/thành")))
             .finally(() => setIsLoadingProvinces(false));
     }, []);
 
@@ -63,7 +64,7 @@ export function ShippingAddressForm({ value, onChange }: ShippingAddressFormProp
         setIsLoadingDistricts(true);
         getDistricts(value.provinceId)
             .then(setDistricts)
-            .catch(() => setError("Không tải được danh sách quận/huyện"))
+            .catch((err) => setError(getErrorMessage(err, "Không tải được danh sách quận/huyện")))
             .finally(() => setIsLoadingDistricts(false));
     }, [value.provinceId]);
 
@@ -75,7 +76,7 @@ export function ShippingAddressForm({ value, onChange }: ShippingAddressFormProp
         setIsLoadingWards(true);
         getWards(value.districtId)
             .then(setWards)
-            .catch(() => setError("Không tải được danh sách phường/xã"))
+            .catch((err) => setError(getErrorMessage(err, "Không tải được danh sách phường/xã")))
             .finally(() => setIsLoadingWards(false));
     }, [value.districtId]);
 

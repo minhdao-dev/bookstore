@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { getLibrary } from "./libraryApi";
 import type { LibraryItemResponse } from "./libraryTypes";
+import { getErrorMessage } from "../../lib/apiClient";
 import "./library.css";
 
 function formatExpiresAt(isoDate: string): string {
@@ -25,7 +26,7 @@ export function LibraryPage() {
     useEffect(() => {
         getLibrary()
             .then(setItems)
-            .catch(() => setError("Không tải được tủ sách"))
+            .catch((err) => setError(getErrorMessage(err, "Không tải được tủ sách")))
             .finally(() => setIsLoading(false));
     }, []);
 

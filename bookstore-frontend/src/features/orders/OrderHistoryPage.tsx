@@ -4,6 +4,7 @@ import { getOrderHistory } from "./orderHistoryApi";
 import type { OrderResponse } from "../cart/cartTypes";
 import { formatPrice, formatDateTime } from "../../lib/format";
 import { orderStatusLabel } from "../../lib/labels";
+import { getErrorMessage } from "../../lib/apiClient";
 import "../cart/cart.css";
 import "../catalog/catalog.css";
 
@@ -27,8 +28,8 @@ export function OrderHistoryPage() {
                 setOrders(result.content);
                 setTotalPages(result.totalPages);
             })
-            .catch(() => {
-                if (!cancelled) setError("Không tải được lịch sử đơn hàng");
+            .catch((err) => {
+                if (!cancelled) setError(getErrorMessage(err, "Không tải được lịch sử đơn hàng"));
             })
             .finally(() => {
                 if (!cancelled) setIsLoading(false);

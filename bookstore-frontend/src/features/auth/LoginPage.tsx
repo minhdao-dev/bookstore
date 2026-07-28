@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
-import { ApiError } from "../../lib/apiClient";
+import { ApiError, getErrorMessage } from "../../lib/apiClient";
 import { useAuth } from "./AuthContext";
 import "./auth.css";
 
@@ -24,7 +24,7 @@ export function LoginPage() {
             if (err instanceof ApiError && err.status === 401) {
                 setError("Sai email hoặc mật khẩu");
             } else {
-                setError("Đăng nhập thất bại, thử lại sau");
+                setError(getErrorMessage(err, "Đăng nhập thất bại, thử lại sau"));
             }
         } finally {
             setIsSubmitting(false);

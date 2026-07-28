@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { getAccessUrl, getLibrary, updateProgress } from "./libraryApi";
 import type { LibraryItemResponse } from "./libraryTypes";
+import { getErrorMessage } from "../../lib/apiClient";
 import "./library.css";
 
 const SAVE_DEBOUNCE_MS = 3000;
@@ -31,8 +32,8 @@ export function AudioPlayerPage() {
                 setItem(found);
                 if (found?.playbackSpeed) setSpeed(found.playbackSpeed);
             })
-            .catch(() => {
-                if (!cancelled) setError("Không tải được nội dung audiobook");
+            .catch((err) => {
+                if (!cancelled) setError(getErrorMessage(err, "Không tải được nội dung audiobook"));
             })
             .finally(() => {
                 if (!cancelled) setIsLoading(false);

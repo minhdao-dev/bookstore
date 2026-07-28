@@ -4,6 +4,7 @@ import { getCart, removeCartItem } from "./cartApi";
 import type { CartResponse } from "./cartTypes";
 import { formatPrice } from "../../lib/format";
 import { ownershipTypeLabel } from "../../lib/labels";
+import { getErrorMessage } from "../../lib/apiClient";
 import "./cart.css";
 
 export function CartPage() {
@@ -17,7 +18,7 @@ export function CartPage() {
         setError(null);
         getCart()
             .then(setCart)
-            .catch(() => setError("Không tải được giỏ hàng"))
+            .catch((err) => setError(getErrorMessage(err, "Không tải được giỏ hàng")))
             .finally(() => setIsLoading(false));
     }
 
@@ -29,8 +30,8 @@ export function CartPage() {
         try {
             await removeCartItem(lineItemId);
             loadCart();
-        } catch {
-            setError("Xóa không thành công, thử lại sau");
+        } catch (err) {
+            setError(getErrorMessage(err, "Xóa không thành công, thử lại sau"));
         }
     }
 

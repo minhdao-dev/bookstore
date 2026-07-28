@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
-import { ApiError } from "../../lib/apiClient";
+import { ApiError, getErrorMessage } from "../../lib/apiClient";
 import { useAuth } from "./AuthContext";
 import "./auth.css";
 
@@ -42,7 +42,7 @@ export function RegisterPage() {
             if (err instanceof ApiError && err.status === 409) {
                 setError("Email này đã được đăng ký");
             } else {
-                setError("Đăng ký thất bại, thử lại sau");
+                setError(getErrorMessage(err, "Đăng ký thất bại, thử lại sau"));
             }
         } finally {
             setIsSubmitting(false);
