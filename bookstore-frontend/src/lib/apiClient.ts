@@ -29,6 +29,13 @@ export function clearStoredToken(): void {
     sessionStorage.removeItem(TOKEN_STORAGE_KEY);
 }
 
+export function getErrorMessage(err: unknown, fallback: string): string {
+    if (err instanceof ApiError && err.message) {
+        return err.message;
+    }
+    return fallback;
+}
+
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
     const headers = new Headers(options.headers);
 

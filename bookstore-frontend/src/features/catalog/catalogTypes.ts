@@ -1,5 +1,6 @@
 export type ProductType = "DIGITAL" | "PHYSICAL";
 export type VariantFormat = "EBOOK" | "AUDIOBOOK" | "PAPERBACK" | "HARDCOVER";
+export type VariantStatus = "ACTIVE" | "INACTIVE";
 
 export interface ProductVariantResponse {
     id: string;
@@ -10,7 +11,7 @@ export interface ProductVariantResponse {
     currency: string;
     weight: number | null;
     dimensions: string | null;
-    status: string;
+    status: VariantStatus;
 }
 
 export interface BookResponse {

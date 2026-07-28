@@ -11,6 +11,7 @@ import {
 } from "./ShippingAddressForm";
 import { formatPrice } from "../../lib/format";
 import { ownershipTypeLabel, productTypeLabel } from "../../lib/labels";
+import { getErrorMessage } from "../../lib/apiClient";
 import "../cart/cart.css";
 import "./checkout.css";
 
@@ -33,7 +34,7 @@ export function CheckoutPage() {
                 }
                 setCart(result);
             })
-            .catch(() => setError("Không tải được giỏ hàng"))
+            .catch((err) => setError(getErrorMessage(err, "Không tải được giỏ hàng")))
             .finally(() => setIsLoading(false));
     }, [navigate]);
 
@@ -54,10 +55,10 @@ export function CheckoutPage() {
             .then((result) => {
                 if (!cancelled) setShippingFee(result.shippingFee);
             })
-            .catch(() => {
+            .catch((err) => {
                 if (!cancelled) {
                     setShippingFee(null);
-                    setError("Không tính được phí vận chuyển cho địa chỉ này, thử chọn lại phường/xã");
+                    setError(getErrorMessage(err, "Không tính được phí vận chuyển cho địa chỉ này, thử chọn lại phường/xã"));
                 }
             })
             .finally(() => {
@@ -87,8 +88,8 @@ export function CheckoutPage() {
                     : null
             );
             window.location.href = result.paymentUrl;
-        } catch {
-            setError("Không tạo được đơn hàng, thử lại sau");
+        } catch (err) {
+            setError(getErrorMessage(err, "Không tạo được đơn hàng, thử lại sau"));
             setIsSubmitting(false);
         }
     }

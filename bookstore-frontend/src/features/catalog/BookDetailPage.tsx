@@ -5,6 +5,7 @@ import { addToCart } from "../cart/cartApi";
 import type { BookResponse, VariantFormat } from "./catalogTypes";
 import { useAuth } from "../auth/AuthContext";
 import { formatPrice, formatDate } from "../../lib/format";
+import { getErrorMessage } from "../../lib/apiClient";
 import "./catalog.css";
 
 const FORMAT_LABELS: Record<VariantFormat, string> = {
@@ -56,8 +57,8 @@ export function BookDetailPage() {
         try {
             await addToCart({ productVariantId: variantId, quantity: 1, ownershipType });
             navigate("/cart");
-        } catch {
-            setActionError("Thêm vào giỏ thất bại, thử lại sau");
+        } catch (err) {
+            setActionError(getErrorMessage(err, "Thêm vào giỏ thất bại, thử lại sau"));
         } finally {
             setPendingVariantId(null);
         }
@@ -82,45 +83,52 @@ export function BookDetailPage() {
             {actionError && <p className="auth-error">{actionError}</p>}
 
             <div className="variant-list">
-                {book.variants.map((variant) => (
-                    <div key={variant.id} className="variant-card">
-                        <div>
-                            <div className="variant-card__format">{FORMAT_LABELS[variant.variantFormat]}</div>
-                            <div className="variant-card__sku">{variant.sku}</div>
-                        </div>
-                        <div className="variant-card__actions">
-                            <span className="variant-card__price">
-                                {formatPrice(variant.price, variant.currency)}
-                            </span>
-                            {variant.productType === "DIGITAL" ? (
-                                <>
+                {book.variants.map((variant) => {
+                    const isAvailable = variant.status === "ACTIVE";
+                    const isPending = pendingVariantId === variant.id;
+
+                    return (
+                        <div key={variant.id} className="variant-card">
+                            <div>
+                                <div className="variant-card__format">{FORMAT_LABELS[variant.variantFormat]}</div>
+                                <div className="variant-card__sku">{variant.sku}</div>
+                            </div>
+                            <div className="variant-card__actions">
+                                <span className="variant-card__price">
+                                    {formatPrice(variant.price, variant.currency)}
+                                </span>
+                                {!isAvailable ? (
+                                    <span className="variant-card__unavailable">Ngừng kinh doanh</span>
+                                ) : variant.productType === "DIGITAL" ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            disabled={isPending}
+                                            onClick={() => handleAddToCart(variant.id, "PURCHASE")}
+                                        >
+                                            Mua
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={isPending}
+                                            onClick={() => handleAddToCart(variant.id, "RENTAL")}
+                                        >
+                                            Thuê
+                                        </button>
+                                    </>
+                                ) : (
                                     <button
                                         type="button"
-                                        disabled={pendingVariantId === variant.id}
+                                        disabled={isPending}
                                         onClick={() => handleAddToCart(variant.id, "PURCHASE")}
                                     >
-                                        Mua
+                                        Thêm vào giỏ
                                     </button>
-                                    <button
-                                        type="button"
-                                        disabled={pendingVariantId === variant.id}
-                                        onClick={() => handleAddToCart(variant.id, "RENTAL")}
-                                    >
-                                        Thuê
-                                    </button>
-                                </>
-                            ) : (
-                                <button
-                                    type="button"
-                                    disabled={pendingVariantId === variant.id}
-                                    onClick={() => handleAddToCart(variant.id, "PURCHASE")}
-                                >
-                                    Thêm vào giỏ
-                                </button>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

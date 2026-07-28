@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { searchBooks } from "../catalog/catalogApi";
 import { deleteBook } from "./adminApi";
 import type { BookResponse } from "../catalog/catalogTypes";
+import { getErrorMessage } from "../../lib/apiClient";
 import "./admin.css";
 
 export function AdminBooksPage() {
@@ -15,7 +16,7 @@ export function AdminBooksPage() {
         setIsLoading(true);
         searchBooks({ page: 0, size: 100 })
             .then((result) => setBooks(result.content))
-            .catch(() => setError("Không tải được danh sách sách"))
+            .catch((err) => setError(getErrorMessage(err, "Không tải được danh sách sách")))
             .finally(() => setIsLoading(false));
     }
 
@@ -30,8 +31,8 @@ export function AdminBooksPage() {
         try {
             await deleteBook(bookId);
             loadBooks();
-        } catch {
-            setError("Xóa thất bại, thử lại sau");
+        } catch (err) {
+            setError(getErrorMessage(err, "Xóa thất bại, thử lại sau"));
         }
     }
 

@@ -6,10 +6,12 @@ import {
     updateBook,
     createVariant,
     updateVariant,
+    updateVariantStatus,
     deleteVariant,
 } from "./adminApi";
 import type { BookResponse, ProductType, VariantFormat } from "../catalog/catalogTypes";
 import type { BookRequest, ProductVariantRequest } from "./adminTypes";
+import { getErrorMessage } from "../../lib/apiClient";
 import "./admin.css";
 
 const EMPTY_BOOK: BookRequest = {
@@ -44,6 +46,7 @@ export function AdminBookFormPage() {
 
     const [variantForm, setVariantForm] = useState<ProductVariantRequest>(EMPTY_VARIANT);
     const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
+    const [togglingVariantId, setTogglingVariantId] = useState<string | null>(null);
 
     function loadBook() {
         if (!isEditMode || !bookId) return;
@@ -60,7 +63,7 @@ export function AdminBookFormPage() {
                     publishedDate: result.publishedDate,
                 });
             })
-            .catch(() => setError("Không tải được sách này"))
+            .catch((err) => setError(getErrorMessage(err, "Không tải được sách này")))
             .finally(() => setIsLoading(false));
     }
 
@@ -81,8 +84,8 @@ export function AdminBookFormPage() {
                 const created = await createBook(form);
                 navigate(`/admin/books/${created.id}`, { replace: true });
             }
-        } catch {
-            setError("Lưu thất bại, thử lại sau");
+        } catch (err) {
+            setError(getErrorMessage(err, "Lưu thất bại, thử lại sau"));
         } finally {
             setIsSaving(false);
         }
@@ -101,8 +104,8 @@ export function AdminBookFormPage() {
             setVariantForm(EMPTY_VARIANT);
             setEditingVariantId(null);
             loadBook();
-        } catch {
-            setError("Lưu variant thất bại, thử lại sau");
+        } catch (err) {
+            setError(getErrorMessage(err, "Lưu variant thất bại, thử lại sau"));
         }
     }
 
@@ -119,13 +122,27 @@ export function AdminBookFormPage() {
         });
     }
 
+    async function handleToggleStatus(variant: BookResponse["variants"][number]) {
+        const nextStatus = variant.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+        setTogglingVariantId(variant.id);
+        setError(null);
+        try {
+            await updateVariantStatus(variant.id, nextStatus);
+            loadBook();
+        } catch (err) {
+            setError(getErrorMessage(err, "Đổi trạng thái thất bại, thử lại sau"));
+        } finally {
+            setTogglingVariantId(null);
+        }
+    }
+
     async function handleDeleteVariant(variantId: string) {
         if (!window.confirm("Xóa variant này?")) return;
         try {
             await deleteVariant(variantId);
             loadBook();
-        } catch {
-            setError("Xóa variant thất bại, thử lại sau");
+        } catch (err) {
+            setError(getErrorMessage(err, "Xóa variant thất bại, thử lại sau"));
         }
     }
 
@@ -219,8 +236,16 @@ export function AdminBookFormPage() {
                                 <span>
                                     {variant.price} {variant.currency}
                                 </span>
-                                <span>{variant.status}</span>
+                                <span>{variant.status === "ACTIVE" ? "Đang bán" : "Ngừng bán"}</span>
                                 <div className="admin-table__actions">
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--ghost"
+                                        disabled={togglingVariantId === variant.id}
+                                        onClick={() => handleToggleStatus(variant)}
+                                    >
+                                        {variant.status === "ACTIVE" ? "Tắt bán" : "Bật bán"}
+                                    </button>
                                     <button
                                         type="button"
                                         className="admin-btn admin-btn--ghost"

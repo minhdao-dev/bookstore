@@ -1,5 +1,5 @@
 import { apiFetch } from "../../lib/apiClient";
-import type { BookResponse, ProductVariantResponse } from "../catalog/catalogTypes";
+import type { BookResponse, ProductVariantResponse, VariantStatus } from "../catalog/catalogTypes";
 import type { BookRequest, ProductVariantRequest } from "./adminTypes";
 
 export function createBook(request: BookRequest): Promise<BookResponse> {
@@ -37,6 +37,16 @@ export function updateVariant(
     return apiFetch<ProductVariantResponse>(`/api/catalog/books/variants/${variantId}`, {
         method: "PUT",
         body: JSON.stringify(request),
+    });
+}
+
+export function updateVariantStatus(
+    variantId: string,
+    status: VariantStatus
+): Promise<ProductVariantResponse> {
+    return apiFetch<ProductVariantResponse>(`/api/catalog/books/variants/${variantId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
     });
 }
 

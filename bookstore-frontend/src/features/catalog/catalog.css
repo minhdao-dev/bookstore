@@ -229,3 +229,9 @@
     background: var(--brass-dark);
     transform: translateY(-1px);
 }
+
+.variant-card__unavailable {
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 0.9rem;
+}

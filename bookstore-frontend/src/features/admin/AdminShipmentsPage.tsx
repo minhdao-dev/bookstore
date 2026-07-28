@@ -3,6 +3,7 @@ import { getPackingSlip, getShipmentsByStatus, updateShipmentStatus } from "./ad
 import type { PackingSlipResponse, ShipmentStatus, ShipmentSummaryResponse } from "./adminShipmentTypes";
 import { formatPrice, formatDateTime } from "../../lib/format";
 import { shipmentStatusLabel } from "../../lib/labels";
+import { getErrorMessage } from "../../lib/apiClient";
 import "./admin.css";
 import "./adminShipments.css";
 import "../orders/orders.css";
@@ -33,7 +34,7 @@ export function AdminShipmentsPage() {
         setError(null);
         getShipmentsByStatus(status)
             .then(setShipments)
-            .catch(() => setError("Không tải được danh sách vận đơn"))
+            .catch((err) => setError(getErrorMessage(err, "Không tải được danh sách vận đơn")))
             .finally(() => setIsLoading(false));
     }
 
@@ -50,8 +51,8 @@ export function AdminShipmentsPage() {
         try {
             await updateShipmentStatus(shipmentId, newStatus);
             loadShipments(activeTab);
-        } catch {
-            setError("Cập nhật trạng thái thất bại, thử lại sau");
+        } catch (err) {
+            setError(getErrorMessage(err, "Cập nhật trạng thái thất bại, thử lại sau"));
         } finally {
             setUpdatingId(null);
         }
@@ -69,8 +70,8 @@ export function AdminShipmentsPage() {
         try {
             const slip = await getPackingSlip(shipmentId);
             setPackingSlip(slip);
-        } catch {
-            setError("Không tải được phiếu đóng gói");
+        } catch (err) {
+            setError(getErrorMessage(err, "Không tải được phiếu đóng gói"));
         } finally {
             setIsLoadingSlip(false);
         }

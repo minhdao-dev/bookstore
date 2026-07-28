@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { OrderShipmentResponse, ShipmentStatus } from "./orderShipmentTypes";
 import { requestReturn } from "./orderShipmentApi";
 import { shipmentStatusLabel } from "../../lib/labels";
+import { getErrorMessage } from "../../lib/apiClient";
 import "./orders.css";
 
 const HAPPY_PATH_STEPS: ShipmentStatus[] = ["PACKING", "SHIPPED", "IN_TRANSIT", "DELIVERED"];
@@ -26,8 +27,8 @@ export function ShipmentTrackingCard({ orderId, shipment, onReturnRequested }: S
         try {
             await requestReturn(orderId);
             onReturnRequested();
-        } catch {
-            setReturnError("Không gửi được yêu cầu trả hàng — có thể đã quá 7 ngày kể từ khi giao hàng.");
+        } catch (err) {
+            setReturnError(getErrorMessage(err, "Không gửi được yêu cầu trả hàng, thử lại sau"));
         } finally {
             setIsSubmitting(false);
         }
