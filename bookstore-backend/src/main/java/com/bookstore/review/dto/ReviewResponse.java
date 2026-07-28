@@ -1,0 +1,4 @@
+package com.bookstore.review.dto;
+
+public class ReviewResponse {
+}

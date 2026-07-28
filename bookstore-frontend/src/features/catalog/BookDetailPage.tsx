@@ -7,6 +7,7 @@ import { useAuth } from "../auth/AuthContext";
 import { formatPrice, formatDate } from "../../lib/format";
 import { getErrorMessage } from "../../lib/apiClient";
 import { useToast } from "../../lib/ToastContext";
+import { ReviewSection } from "../reviews/ReviewSection";
 import "./catalog.css";
 
 const FORMAT_LABELS: Record<VariantFormat, string> = {
@@ -133,6 +134,8 @@ export function BookDetailPage() {
                     );
                 })}
             </div>
+
+            <ReviewSection bookId={book.id} />
         </div>
     );
 }

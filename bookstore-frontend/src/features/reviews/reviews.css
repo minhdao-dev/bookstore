@@ -1,0 +1,117 @@
+.review-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+}
+
+.review-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    color: var(--ink-soft);
+}
+
+.star-display {
+    color: var(--brass);
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+}
+
+.star-rating-input {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.star-rating-input__star {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--line);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.15s ease;
+}
+
+.star-rating-input__star.is-filled {
+    color: var(--brass);
+}
+
+.review-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    max-width: 480px;
+}
+
+.review-form textarea {
+    min-height: 90px;
+    resize: vertical;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.6rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+}
+
+.review-form__actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.review-item {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+}
+
+.review-item__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+}
+
+.review-item__author {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.review-item__date {
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+}
+
+.review-item__comment {
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+.review-item__actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.review-item__actions button {
+    font-size: 0.85rem;
+    background: none;
+    border: none;
+    color: var(--wine);
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+}
