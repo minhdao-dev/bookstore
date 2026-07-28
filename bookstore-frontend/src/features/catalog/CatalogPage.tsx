@@ -4,9 +4,22 @@ import { searchBooks } from "./catalogApi";
 import type { BookResponse } from "./catalogTypes";
 import { formatPrice } from "../../lib/format";
 import { getErrorMessage } from "../../lib/apiClient";
+import { Skeleton } from "../../components/Skeleton";
+import { EmptyState } from "../../components/EmptyState";
 import "./catalog.css";
 
 const PAGE_SIZE = 12;
+
+function BookCardSkeleton() {
+    return (
+        <div className="book-card book-card--skeleton">
+            <Skeleton width="40%" height="0.75rem" />
+            <Skeleton width="80%" height="1.3rem" />
+            <Skeleton width="55%" height="0.9rem" />
+            <Skeleton width="35%" height="1rem" />
+        </div>
+    );
+}
 
 export function CatalogPage() {
     const [keywordInput, setKeywordInput] = useState("");
@@ -68,10 +81,21 @@ export function CatalogPage() {
                 </form>
             </div>
 
-            {isLoading && <p className="catalog-state">Đang tải...</p>}
             {error && <p className="catalog-state">{error}</p>}
+
+            {isLoading && (
+                <div className="catalog-grid">
+                    {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                        <BookCardSkeleton key={i} />
+                    ))}
+                </div>
+            )}
+
             {!isLoading && !error && books.length === 0 && (
-                <p className="catalog-state">Không tìm thấy sách nào phù hợp</p>
+                <EmptyState
+                    title="Không tìm thấy sách nào phù hợp"
+                    description="Thử đổi từ khóa tìm kiếm hoặc khám phá toàn bộ danh mục."
+                />
             )}
 
             {!isLoading && !error && books.length > 0 && (

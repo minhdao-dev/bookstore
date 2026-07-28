@@ -6,6 +6,7 @@ import type { BookResponse, VariantFormat } from "./catalogTypes";
 import { useAuth } from "../auth/AuthContext";
 import { formatPrice, formatDate } from "../../lib/format";
 import { getErrorMessage } from "../../lib/apiClient";
+import { useToast } from "../../lib/ToastContext";
 import "./catalog.css";
 
 const FORMAT_LABELS: Record<VariantFormat, string> = {
@@ -19,6 +20,7 @@ export function BookDetailPage() {
     const { bookId } = useParams<{ bookId: string }>();
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [book, setBook] = useState<BookResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -56,6 +58,7 @@ export function BookDetailPage() {
         setActionError(null);
         try {
             await addToCart({ productVariantId: variantId, quantity: 1, ownershipType });
+            showToast("Đã thêm vào giỏ hàng", "success");
             navigate("/cart");
         } catch (err) {
             setActionError(getErrorMessage(err, "Thêm vào giỏ thất bại, thử lại sau"));

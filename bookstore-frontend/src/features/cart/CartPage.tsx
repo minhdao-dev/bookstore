@@ -5,10 +5,26 @@ import type { CartResponse } from "./cartTypes";
 import { formatPrice } from "../../lib/format";
 import { ownershipTypeLabel } from "../../lib/labels";
 import { getErrorMessage } from "../../lib/apiClient";
+import { useToast } from "../../lib/ToastContext";
+import { Skeleton } from "../../components/Skeleton";
+import { EmptyState } from "../../components/EmptyState";
 import "./cart.css";
+
+function CartItemSkeleton() {
+    return (
+        <div className="cart-item">
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "60%" }}>
+                <Skeleton width="70%" height="1.1rem" />
+                <Skeleton width="40%" height="0.85rem" />
+            </div>
+            <Skeleton width="80px" height="1.1rem" />
+        </div>
+    );
+}
 
 export function CartPage() {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [cart, setCart] = useState<CartResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -31,11 +47,22 @@ export function CartPage() {
             await removeCartItem(lineItemId);
             loadCart();
         } catch (err) {
-            setError(getErrorMessage(err, "Xóa không thành công, thử lại sau"));
+            showToast(getErrorMessage(err, "Xóa không thành công, thử lại sau"), "error");
         }
     }
 
-    if (isLoading) return <p className="catalog-state">Đang tải...</p>;
+    if (isLoading) {
+        return (
+            <div className="cart-page">
+                <h1>Giỏ hàng</h1>
+                <div className="cart-list">
+                    <CartItemSkeleton />
+                    <CartItemSkeleton />
+                    <CartItemSkeleton />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="cart-page">
@@ -44,9 +71,10 @@ export function CartPage() {
             {error && <p className="auth-error">{error}</p>}
 
             {cart && cart.items.length === 0 && (
-                <p className="catalog-state">
-                    Giỏ hàng đang trống. <Link to="/catalog">Khám phá danh mục sách</Link>
-                </p>
+                <EmptyState
+                    title="Giỏ hàng đang trống"
+                    action={<Link to="/catalog">Khám phá danh mục sách</Link>}
+                />
             )}
 
             {cart && cart.items.length > 0 && (

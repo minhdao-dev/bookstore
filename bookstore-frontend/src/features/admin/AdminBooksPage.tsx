@@ -4,10 +4,25 @@ import { searchBooks } from "../catalog/catalogApi";
 import { deleteBook } from "./adminApi";
 import type { BookResponse } from "../catalog/catalogTypes";
 import { getErrorMessage } from "../../lib/apiClient";
+import { useToast } from "../../lib/ToastContext";
+import { Skeleton } from "../../components/Skeleton";
 import "./admin.css";
+
+function AdminRowSkeleton() {
+    return (
+        <tr>
+            <td><Skeleton width="80%" /></td>
+            <td><Skeleton width="60%" /></td>
+            <td><Skeleton width="50%" /></td>
+            <td><Skeleton width="30%" /></td>
+            <td></td>
+        </tr>
+    );
+}
 
 export function AdminBooksPage() {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [books, setBooks] = useState<BookResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -30,9 +45,10 @@ export function AdminBooksPage() {
         }
         try {
             await deleteBook(bookId);
+            showToast(`Đã xóa "${title}"`, "success");
             loadBooks();
         } catch (err) {
-            setError(getErrorMessage(err, "Xóa thất bại, thử lại sau"));
+            showToast(getErrorMessage(err, "Xóa thất bại, thử lại sau"), "error");
         }
     }
 
@@ -46,21 +62,23 @@ export function AdminBooksPage() {
             </div>
 
             {error && <p className="auth-error">{error}</p>}
-            {isLoading && <p className="catalog-state">Đang tải...</p>}
 
-            {!isLoading && (
-                <table className="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Tên sách</th>
-                            <th>Tác giả</th>
-                            <th>Thể loại</th>
-                            <th>Số variant</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {books.map((book) => (
+            <table className="admin-table">
+                <thead>
+                    <tr>
+                        <th>Tên sách</th>
+                        <th>Tác giả</th>
+                        <th>Thể loại</th>
+                        <th>Số variant</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {isLoading &&
+                        Array.from({ length: 5 }).map((_, i) => <AdminRowSkeleton key={i} />)}
+
+                    {!isLoading &&
+                        books.map((book) => (
                             <tr key={book.id}>
                                 <td>{book.title}</td>
                                 <td>{book.author}</td>
@@ -82,8 +100,11 @@ export function AdminBooksPage() {
                                 </td>
                             </tr>
                         ))}
-                    </tbody>
-                </table>
+                </tbody>
+            </table>
+
+            {!isLoading && books.length === 0 && (
+                <p className="catalog-state">Chưa có sách nào, bấm "+ Thêm sách" để bắt đầu.</p>
             )}
         </div>
     );

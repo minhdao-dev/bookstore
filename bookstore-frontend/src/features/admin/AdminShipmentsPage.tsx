@@ -4,6 +4,8 @@ import type { PackingSlipResponse, ShipmentStatus, ShipmentSummaryResponse } fro
 import { formatPrice, formatDateTime } from "../../lib/format";
 import { shipmentStatusLabel } from "../../lib/labels";
 import { getErrorMessage } from "../../lib/apiClient";
+import { useToast } from "../../lib/ToastContext";
+import { EmptyState } from "../../components/EmptyState";
 import "./admin.css";
 import "./adminShipments.css";
 import "../orders/orders.css";
@@ -20,6 +22,7 @@ const ALLOWED_NEXT: Record<ShipmentStatus, ShipmentStatus[]> = {
 };
 
 export function AdminShipmentsPage() {
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<ShipmentStatus>("PACKING");
     const [shipments, setShipments] = useState<ShipmentSummaryResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -47,12 +50,12 @@ export function AdminShipmentsPage() {
 
     async function handleUpdateStatus(shipmentId: string, newStatus: ShipmentStatus) {
         setUpdatingId(shipmentId);
-        setError(null);
         try {
             await updateShipmentStatus(shipmentId, newStatus);
+            showToast(`Đã chuyển sang ${shipmentStatusLabel(newStatus)}`, "success");
             loadShipments(activeTab);
         } catch (err) {
-            setError(getErrorMessage(err, "Cập nhật trạng thái thất bại, thử lại sau"));
+            showToast(getErrorMessage(err, "Cập nhật trạng thái thất bại, thử lại sau"), "error");
         } finally {
             setUpdatingId(null);
         }
@@ -71,7 +74,7 @@ export function AdminShipmentsPage() {
             const slip = await getPackingSlip(shipmentId);
             setPackingSlip(slip);
         } catch (err) {
-            setError(getErrorMessage(err, "Không tải được phiếu đóng gói"));
+            showToast(getErrorMessage(err, "Không tải được phiếu đóng gói"), "error");
         } finally {
             setIsLoadingSlip(false);
         }
@@ -108,7 +111,7 @@ export function AdminShipmentsPage() {
             {isLoading && <p className="catalog-state">Đang tải...</p>}
 
             {!isLoading && shipments.length === 0 && (
-                <p className="catalog-state">Không có vận đơn nào ở trạng thái này.</p>
+                <EmptyState title="Không có vận đơn nào ở trạng thái này" />
             )}
 
             {!isLoading && shipments.length > 0 && (

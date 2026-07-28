@@ -12,6 +12,7 @@ import {
 import type { BookResponse, ProductType, VariantFormat } from "../catalog/catalogTypes";
 import type { BookRequest, ProductVariantRequest } from "./adminTypes";
 import { getErrorMessage } from "../../lib/apiClient";
+import { useToast } from "../../lib/ToastContext";
 import "./admin.css";
 
 const EMPTY_BOOK: BookRequest = {
@@ -37,6 +38,7 @@ export function AdminBookFormPage() {
     const { bookId } = useParams<{ bookId: string }>();
     const isEditMode = bookId !== undefined && bookId !== "new";
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
     const [book, setBook] = useState<BookResponse | null>(null);
     const [form, setForm] = useState<BookRequest>(EMPTY_BOOK);
@@ -79,9 +81,11 @@ export function AdminBookFormPage() {
         try {
             if (isEditMode && bookId) {
                 await updateBook(bookId, form);
+                showToast("Đã lưu sách", "success");
                 loadBook();
             } else {
                 const created = await createBook(form);
+                showToast("Đã tạo sách mới", "success");
                 navigate(`/admin/books/${created.id}`, { replace: true });
             }
         } catch (err) {
@@ -98,8 +102,10 @@ export function AdminBookFormPage() {
         try {
             if (editingVariantId) {
                 await updateVariant(editingVariantId, variantForm);
+                showToast("Đã cập nhật variant", "success");
             } else {
                 await createVariant(bookId, variantForm);
+                showToast("Đã thêm variant mới", "success");
             }
             setVariantForm(EMPTY_VARIANT);
             setEditingVariantId(null);
@@ -125,12 +131,12 @@ export function AdminBookFormPage() {
     async function handleToggleStatus(variant: BookResponse["variants"][number]) {
         const nextStatus = variant.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
         setTogglingVariantId(variant.id);
-        setError(null);
         try {
             await updateVariantStatus(variant.id, nextStatus);
+            showToast(nextStatus === "ACTIVE" ? "Đã bật bán variant" : "Đã tắt bán variant", "success");
             loadBook();
         } catch (err) {
-            setError(getErrorMessage(err, "Đổi trạng thái thất bại, thử lại sau"));
+            showToast(getErrorMessage(err, "Đổi trạng thái thất bại, thử lại sau"), "error");
         } finally {
             setTogglingVariantId(null);
         }
@@ -140,9 +146,10 @@ export function AdminBookFormPage() {
         if (!window.confirm("Xóa variant này?")) return;
         try {
             await deleteVariant(variantId);
+            showToast("Đã xóa variant", "success");
             loadBook();
         } catch (err) {
-            setError(getErrorMessage(err, "Xóa variant thất bại, thử lại sau"));
+            showToast(getErrorMessage(err, "Xóa variant thất bại, thử lại sau"), "error");
         }
     }
 

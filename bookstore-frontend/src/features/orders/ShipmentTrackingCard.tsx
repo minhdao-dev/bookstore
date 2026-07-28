@@ -3,6 +3,7 @@ import type { OrderShipmentResponse, ShipmentStatus } from "./orderShipmentTypes
 import { requestReturn } from "./orderShipmentApi";
 import { shipmentStatusLabel } from "../../lib/labels";
 import { getErrorMessage } from "../../lib/apiClient";
+import { useToast } from "../../lib/ToastContext";
 import "./orders.css";
 
 const HAPPY_PATH_STEPS: ShipmentStatus[] = ["PACKING", "SHIPPED", "IN_TRANSIT", "DELIVERED"];
@@ -14,6 +15,7 @@ interface ShipmentTrackingCardProps {
 }
 
 export function ShipmentTrackingCard({ orderId, shipment, onReturnRequested }: ShipmentTrackingCardProps) {
+    const { showToast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [returnError, setReturnError] = useState<string | null>(null);
 
@@ -26,6 +28,7 @@ export function ShipmentTrackingCard({ orderId, shipment, onReturnRequested }: S
         setReturnError(null);
         try {
             await requestReturn(orderId);
+            showToast("Đã gửi yêu cầu trả hàng", "success");
             onReturnRequested();
         } catch (err) {
             setReturnError(getErrorMessage(err, "Không gửi được yêu cầu trả hàng, thử lại sau"));

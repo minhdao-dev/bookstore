@@ -5,10 +5,24 @@ import type { OrderResponse } from "../cart/cartTypes";
 import { formatPrice, formatDateTime } from "../../lib/format";
 import { orderStatusLabel } from "../../lib/labels";
 import { getErrorMessage } from "../../lib/apiClient";
+import { Skeleton } from "../../components/Skeleton";
+import { EmptyState } from "../../components/EmptyState";
 import "../cart/cart.css";
 import "../catalog/catalog.css";
 
 const PAGE_SIZE = 10;
+
+function OrderRowSkeleton() {
+    return (
+        <div className="cart-item">
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "60%" }}>
+                <Skeleton width="35%" height="1.1rem" />
+                <Skeleton width="55%" height="0.85rem" />
+            </div>
+            <Skeleton width="80px" height="1.1rem" />
+        </div>
+    );
+}
 
 export function OrderHistoryPage() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
@@ -40,21 +54,28 @@ export function OrderHistoryPage() {
         };
     }, [page]);
 
-    if (isLoading) return <p className="catalog-state">Đang tải...</p>;
-
     return (
         <div className="cart-page">
             <h1>Lịch sử đơn hàng</h1>
 
             {error && <p className="auth-error">{error}</p>}
 
-            {!error && orders.length === 0 && (
-                <p className="catalog-state">
-                    Bro chưa có đơn hàng nào. <Link to="/catalog">Khám phá danh mục sách</Link>
-                </p>
+            {isLoading && (
+                <div className="cart-list">
+                    <OrderRowSkeleton />
+                    <OrderRowSkeleton />
+                    <OrderRowSkeleton />
+                </div>
             )}
 
-            {orders.length > 0 && (
+            {!isLoading && !error && orders.length === 0 && (
+                <EmptyState
+                    title="Bro chưa có đơn hàng nào"
+                    action={<Link to="/catalog">Khám phá danh mục sách</Link>}
+                />
+            )}
+
+            {!isLoading && orders.length > 0 && (
                 <>
                     <div className="cart-list">
                         {orders.map((order) => (

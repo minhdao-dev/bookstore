@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router";
 import { getLibrary } from "./libraryApi";
 import type { LibraryItemResponse } from "./libraryTypes";
 import { getErrorMessage } from "../../lib/apiClient";
+import { Skeleton } from "../../components/Skeleton";
+import { EmptyState } from "../../components/EmptyState";
 import "./library.css";
 
 function formatExpiresAt(isoDate: string): string {
@@ -15,6 +17,18 @@ function formatProgress(item: LibraryItemResponse): string | null {
         ? new Date(item.lastReadAt).toLocaleDateString("vi-VN")
         : null;
     return lastRead ? `Đọc lần cuối: ${lastRead}` : "Đã có tiến độ đọc";
+}
+
+function LibraryItemSkeleton() {
+    return (
+        <div className="library-item">
+            <div className="library-item__info" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                <Skeleton width="70%" height="1.2rem" />
+                <Skeleton width="40%" height="0.9rem" />
+            </div>
+            <Skeleton width="90px" height="2.2rem" />
+        </div>
+    );
 }
 
 export function LibraryPage() {
@@ -38,19 +52,28 @@ export function LibraryPage() {
         }
     }
 
-    if (isLoading) return <p className="catalog-state">Đang tải...</p>;
-
     return (
         <div className="library-page">
             <h1>Tủ sách của tôi</h1>
 
             {error && <p className="auth-error">{error}</p>}
 
-            {items.length === 0 ? (
-                <p className="library-empty">
-                    Tủ sách đang trống. <Link to="/catalog">Khám phá danh mục sách</Link>
-                </p>
-            ) : (
+            {isLoading && (
+                <div className="library-grid">
+                    <LibraryItemSkeleton />
+                    <LibraryItemSkeleton />
+                    <LibraryItemSkeleton />
+                </div>
+            )}
+
+            {!isLoading && items.length === 0 && (
+                <EmptyState
+                    title="Tủ sách đang trống"
+                    action={<Link to="/catalog">Khám phá danh mục sách</Link>}
+                />
+            )}
+
+            {!isLoading && items.length > 0 && (
                 <div className="library-grid">
                     {items.map((item) => {
                         const progressText = formatProgress(item);

@@ -235,3 +235,10 @@
     font-style: italic;
     font-size: 0.9rem;
 }
+
+.book-card--skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    cursor: default;
+}
