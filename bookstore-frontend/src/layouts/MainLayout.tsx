@@ -14,7 +14,7 @@ export default function MainLayout() {
     return (
         <div className="app-shell">
             <header className="app-header">
-                <Link to="/" className="app-header__brand">BookStore</Link>
+                <Link to="/" className="app-header__brand">Vạn Thư Các</Link>
                 <nav className="app-nav">
                     <Link to="/">Trang chủ</Link>
                     <Link to="/catalog">Danh mục</Link>
@@ -47,7 +47,7 @@ export default function MainLayout() {
                 <Outlet />
             </main>
 
-            <footer className="app-footer">© BookStore</footer>
+            <footer className="app-footer">© Vạn Thư Các</footer>
         </div>
     );
 }

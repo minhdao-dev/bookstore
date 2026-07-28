@@ -1,0 +1,105 @@
+.home-hero {
+    max-width: 760px;
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.home-hero__ribbon {
+    width: 3px;
+    height: 48px;
+    background: var(--wine);
+    margin: 0 auto 1.5rem;
+    clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+}
+
+.home-hero__eyebrow {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brass-dark);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.home-hero h1 {
+    font-size: 2.6rem;
+    margin-bottom: 1rem;
+}
+
+.home-hero__subtitle {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin: 0 auto 2rem;
+}
+
+.home-hero__actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 3.5rem;
+}
+
+.home-hero__cta {
+    background: var(--brass);
+    color: #fff !important;
+    padding: 0.75rem 1.6rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.home-hero__cta:hover {
+    background: var(--brass-dark);
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+.home-hero__cta--ghost {
+    background: transparent;
+    color: var(--ink) !important;
+    border: 1px solid var(--line);
+}
+
+.home-hero__cta--ghost:hover {
+    border-color: var(--brass);
+    background: rgba(184, 134, 59, 0.08);
+}
+
+.home-hero__features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    text-align: left;
+}
+
+.home-feature {
+    background: var(--paper-raised);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+    box-shadow: 0 1px 2px rgba(28, 35, 51, 0.08);
+}
+
+.home-feature h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--brass-dark);
+}
+
+.home-feature p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .home-hero__features {
+        grid-template-columns: 1fr;
+    }
+
+    .home-hero__actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}

@@ -243,7 +243,9 @@ export function AdminBookFormPage() {
                                 <span>
                                     {variant.price} {variant.currency}
                                 </span>
-                                <span>{variant.status === "ACTIVE" ? "Đang bán" : "Ngừng bán"}</span>
+                                <span className={`status-pill ${variant.status === "ACTIVE" ? "status-pill--active" : "status-pill--inactive"}`}>
+                                    {variant.status === "ACTIVE" ? "Đang bán" : "Ngừng bán"}
+                                </span>
                                 <div className="admin-table__actions">
                                     <button
                                         type="button"
