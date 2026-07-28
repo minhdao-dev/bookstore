@@ -12,6 +12,7 @@ export interface ShipmentSummaryResponse {
     recipientName: string;
     addressLine: string;
     city: string | null;
+    returnRequestedAt: string | null;
 }
 
 export interface PackingSlipItem {
