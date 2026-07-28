@@ -5,16 +5,21 @@ import com.bookstore.inventory.service.InventoryService;
 import com.bookstore.order.entity.FulfillmentStatus;
 import com.bookstore.order.entity.Order;
 import com.bookstore.order.entity.OrderLineItem;
+import com.bookstore.order.exception.OrderNotFoundException;
 import com.bookstore.order.repository.OrderLineItemRepository;
+import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.shipping.entity.Shipment;
 import com.bookstore.shipping.entity.ShipmentStatus;
 import com.bookstore.shipping.exception.ShipmentNotFoundException;
 import com.bookstore.shipping.repository.ShipmentRepository;
+import com.bookstore.shipping.service.ShippingService;
 import com.bookstore.warehouse.dto.PackingSlipItemResponse;
 import com.bookstore.warehouse.dto.PackingSlipResponse;
 import com.bookstore.warehouse.dto.ShipmentSummaryResponse;
 import com.bookstore.warehouse.exception.InvalidShipmentTransitionException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +29,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,6 +37,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class WarehouseOpsService {
+
+    private static final Logger log = LoggerFactory.getLogger(WarehouseOpsService.class);
 
     private static final Map<ShipmentStatus, Set<ShipmentStatus>> ALLOWED_TRANSITIONS = new EnumMap<>(ShipmentStatus.class);
 
@@ -48,7 +56,9 @@ public class WarehouseOpsService {
 
     private final ShipmentRepository shipmentRepository;
     private final OrderLineItemRepository orderLineItemRepository;
+    private final OrderRepository orderRepository;
     private final InventoryService inventoryService;
+    private final ShippingService shippingService;
 
     public List<ShipmentSummaryResponse> getByStatus(ShipmentStatus status) {
         return shipmentRepository.findByStatus(status).stream()
@@ -87,11 +97,51 @@ public class WarehouseOpsService {
                 .orElseThrow(() -> new ShipmentNotFoundException(shipmentId));
 
         ShipmentStatus oldStatus = shipment.getStatus();
-        Set<ShipmentStatus> allowed = ALLOWED_TRANSITIONS.getOrDefault(oldStatus, Set.of());
-        if (!allowed.contains(newStatus)) {
+        if (isTransitionForbidden(oldStatus, newStatus)) {
             throw new InvalidShipmentTransitionException(oldStatus, newStatus);
         }
 
+        applyStatusChange(shipment, newStatus);
+        return toSummary(shipment);
+    }
+
+    @Transactional
+    public void applyExternalStatus(String trackingNumber, ShipmentStatus newStatus) {
+        Optional<Shipment> shipmentOpt = shipmentRepository.findByTrackingNumber(trackingNumber);
+        if (shipmentOpt.isEmpty()) {
+            log.warn("Received GHN webhook for unknown tracking number: {}", trackingNumber);
+            return;
+        }
+
+        Shipment shipment = shipmentOpt.get();
+        ShipmentStatus oldStatus = shipment.getStatus();
+
+        if (oldStatus == newStatus) {
+            return;
+        }
+
+        if (isTransitionForbidden(oldStatus, newStatus)) {
+            log.warn("Ignoring out-of-order GHN webhook for shipment {}: {} -> {}",
+                    shipment.getId(), oldStatus, newStatus);
+            return;
+        }
+
+        applyStatusChange(shipment, newStatus);
+    }
+
+    @Transactional
+    public void retryCreateShipment(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+        shippingService.createShipmentForOrder(order);
+    }
+
+    private boolean isTransitionForbidden(ShipmentStatus from, ShipmentStatus to) {
+        return !ALLOWED_TRANSITIONS.getOrDefault(from, Set.of()).contains(to);
+    }
+
+    private void applyStatusChange(Shipment shipment, ShipmentStatus newStatus) {
+        ShipmentStatus oldStatus = shipment.getStatus();
         Order order = shipment.getOrder();
 
         if (newStatus == ShipmentStatus.SHIPPED && oldStatus == ShipmentStatus.PACKING) {
@@ -112,8 +162,6 @@ public class WarehouseOpsService {
 
         shipment.setStatus(newStatus);
         syncLineItemFulfillmentStatus(order, newStatus);
-
-        return toSummary(shipment);
     }
 
     private void syncLineItemFulfillmentStatus(Order order, ShipmentStatus shipmentStatus) {
@@ -147,7 +195,8 @@ public class WarehouseOpsService {
                 shipment.getShippingFee(),
                 shipment.getRecipientName(),
                 shipment.getAddressLine(),
-                shipment.getCity()
+                shipment.getCity(),
+                shipment.getReturnRequestedAt()
         );
     }
 }

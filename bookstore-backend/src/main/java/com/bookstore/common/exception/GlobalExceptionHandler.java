@@ -1,5 +1,6 @@
 package com.bookstore.common.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -7,10 +8,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException.class)
     public ProblemDetail handleAppException(AppException ex) {
+        if (ex.getStatus().is5xxServerError()) {
+            log.error("Unhandled server-side exception", ex);
+        } else {
+            log.warn("Business exception: {}", ex.getMessage());
+        }
         return ProblemDetail.forStatusAndDetail(ex.getStatus(), ex.getMessage());
     }
 

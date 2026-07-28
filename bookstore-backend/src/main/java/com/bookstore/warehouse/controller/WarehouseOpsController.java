@@ -7,6 +7,7 @@ import com.bookstore.warehouse.dto.ShipmentSummaryResponse;
 import com.bookstore.warehouse.service.WarehouseOpsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,5 +38,11 @@ public class WarehouseOpsController {
             @Valid @RequestBody ShipmentStatusUpdateRequest request
     ) {
         return warehouseOpsService.updateStatus(shipmentId, request.status());
+    }
+
+    @PostMapping("/retry/{orderId}")
+    public ResponseEntity<Void> retryCreateShipment(@PathVariable UUID orderId) {
+        warehouseOpsService.retryCreateShipment(orderId);
+        return ResponseEntity.noContent().build();
     }
 }

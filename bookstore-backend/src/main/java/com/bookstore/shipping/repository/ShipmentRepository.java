@@ -11,5 +11,7 @@ import java.util.UUID;
 public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
     Optional<Shipment> findByOrderId(UUID orderId);
 
+    Optional<Shipment> findByTrackingNumber(String trackingNumber);
+
     List<Shipment> findByStatus(ShipmentStatus status);
 }

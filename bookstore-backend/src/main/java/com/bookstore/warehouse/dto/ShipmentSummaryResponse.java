@@ -4,6 +4,7 @@ import com.bookstore.shipping.entity.ShipmentStatus;
 import com.bookstore.shipping.entity.ShippingCarrier;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 public record ShipmentSummaryResponse(
@@ -15,6 +16,7 @@ public record ShipmentSummaryResponse(
         BigDecimal shippingFee,
         String recipientName,
         String addressLine,
-        String city
+        String city,
+        Instant returnRequestedAt
 ) {
 }

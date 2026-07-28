@@ -13,6 +13,8 @@ import com.bookstore.payment.PaymentCallbackResult;
 import com.bookstore.payment.PaymentGateway;
 import com.bookstore.shipping.service.ShippingService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class PaymentIpnService {
+
+    private static final Logger log = LoggerFactory.getLogger(PaymentIpnService.class);
 
     private final PaymentGateway paymentGateway;
     private final OrderRepository orderRepository;
@@ -67,7 +71,12 @@ public class PaymentIpnService {
             order.setStatus(OrderStatus.PAID);
             transaction.setStatus(PaymentTransactionStatus.SUCCESS);
             entitlementService.grantForOrder(order);
-            shippingService.createShipmentForOrder(order);
+
+            try {
+                shippingService.createShipmentForOrder(order);
+            } catch (Exception ex) {
+                log.error("Payment succeeded but failed to create GHN shipment for order {}", order.getId(), ex);
+            }
         } else {
             order.setStatus(OrderStatus.FAILED);
             transaction.setStatus(PaymentTransactionStatus.FAILED);
