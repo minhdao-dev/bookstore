@@ -17,12 +17,26 @@ interface ProblemDetail {
     status?: number;
 }
 
+let onUnauthorized: (() => void) | null = null;
+let unauthorizedHandled = false;
+
+export function setUnauthorizedHandler(handler: () => void): void {
+    onUnauthorized = handler;
+}
+
+function notifyUnauthorized(): void {
+    if (unauthorizedHandled) return;
+    unauthorizedHandled = true;
+    onUnauthorized?.();
+}
+
 export function getStoredToken(): string | null {
     return sessionStorage.getItem(TOKEN_STORAGE_KEY);
 }
 
 export function setStoredToken(token: string): void {
     sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+    unauthorizedHandled = false;
 }
 
 export function clearStoredToken(): void {
@@ -54,6 +68,10 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     });
 
     if (!response.ok) {
+        if (response.status === 401 && token) {
+            notifyUnauthorized();
+        }
+
         let message = response.statusText;
         try {
             const problem: ProblemDetail = await response.json();

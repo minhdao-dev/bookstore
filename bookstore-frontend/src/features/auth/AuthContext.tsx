@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { decodeJwt, isTokenExpired } from "../../lib/jwt";
-import { clearStoredToken, getStoredToken, setStoredToken } from "../../lib/apiClient";
+import { clearStoredToken, getStoredToken, setStoredToken, setUnauthorizedHandler } from "../../lib/apiClient";
+import { useToast } from "../../lib/ToastContext";
 import { login as loginRequest, register as registerRequest } from "./authApi";
 import type { LoginRequest, RegisterRequest, User } from "./authTypes";
 
@@ -25,6 +26,7 @@ function userFromToken(token: string): User | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const { showToast } = useToast();
 
     useEffect(() => {
         const token = getStoredToken();
@@ -38,6 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setIsLoading(false);
     }, []);
+
+    useEffect(() => {
+        setUnauthorizedHandler(() => {
+            clearStoredToken();
+            setUser(null);
+            showToast("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại", "error");
+        });
+    }, [showToast]);
 
     async function login(request: LoginRequest) {
         const response = await loginRequest(request);
