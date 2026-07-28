@@ -1,0 +1,107 @@
+.admin-shipment-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-shipment-tab {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.admin-shipment-tab:hover {
+    border-color: var(--brass);
+}
+
+.admin-shipment-tab--active {
+    background: var(--brass);
+    border-color: var(--brass);
+    color: #fff;
+    font-weight: 600;
+}
+
+.admin-shipment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.admin-shipment-card {
+    background: var(--paper-raised);
+    border-radius: var(--radius);
+    padding: 1.2rem 1.5rem;
+    box-shadow: 0 1px 2px rgba(28, 35, 51, 0.08);
+}
+
+.admin-shipment-card__main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.admin-shipment-card__order {
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.admin-shipment-card__meta {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-bottom: 0.2rem;
+}
+
+.admin-shipment-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.admin-shipment-card__slip {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+}
+
+.admin-shipment-card__items {
+    margin-top: 0.5rem;
+    padding-left: 1.2rem;
+    font-size: 0.9rem;
+}
+
+.admin-shipment-card__items li {
+    margin-bottom: 0.3rem;
+}
+
+.admin-shipment-alert {
+    background: rgba(122, 36, 54, 0.08);
+    border-left: 3px solid var(--wine);
+    color: var(--wine-dark);
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.88rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-shipment-card--flagged {
+    border: 1px solid var(--wine);
+}
+
+.admin-shipment-card__return-badge {
+    display: inline-block;
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--wine-dark);
+    background: rgba(122, 36, 54, 0.1);
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+}

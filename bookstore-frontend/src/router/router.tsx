@@ -16,6 +16,7 @@ import { EpubReaderPage } from "../features/library/EpubReaderPage";
 import { AudioPlayerPage } from "../features/library/AudioPlayerPage";
 import { AdminBooksPage } from "../features/admin/AdminBooksPage";
 import { AdminBookFormPage } from "../features/admin/AdminBookFormPage";
+import { AdminShipmentsPage } from "../features/admin/AdminShipmentsPage";
 import { PrivateRoute } from "../components/PrivateRoute";
 import { AdminRoute } from "../components/AdminRoute";
 
@@ -47,6 +48,7 @@ export const router = createBrowserRouter([
                 children: [
                     { path: "admin/books", Component: AdminBooksPage },
                     { path: "admin/books/:bookId", Component: AdminBookFormPage },
+                    { path: "admin/shipments", Component: AdminShipmentsPage },
                 ],
             },
             { path: "*", Component: NotFoundPage },

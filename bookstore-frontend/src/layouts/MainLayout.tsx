@@ -20,7 +20,12 @@ export default function MainLayout() {
                     <Link to="/catalog">Danh mục</Link>
                     {user ? (
                         <>
-                            {user.role === "ADMIN" && <Link to="/admin/books">Quản trị</Link>}
+                            {user.role === "ADMIN" && (
+                                <>
+                                    <Link to="/admin/books">Quản trị</Link>
+                                    <Link to="/admin/shipments">Vận chuyển</Link>
+                                </>
+                            )}
                             <Link to="/library">Tủ sách</Link>
                             <Link to="/orders">Đơn hàng</Link>
                             <Link to="/cart">Giỏ hàng</Link>
