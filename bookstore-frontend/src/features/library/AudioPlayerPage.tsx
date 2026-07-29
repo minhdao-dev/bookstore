@@ -4,6 +4,9 @@ import Hls from "hls.js";
 import { getAccessUrl, getLibrary, updateProgress } from "./libraryApi";
 import type { LibraryItemResponse } from "./libraryTypes";
 import { getErrorMessage, getStoredToken, API_BASE_URL } from "../../lib/apiClient";
+import { saveLocalProgress, markSynced } from "../../lib/offlineProgressStore";
+import { subscribeReadingProgress } from "../../lib/realtimeClient";
+import { useToast } from "../../lib/ToastContext";
 import "./library.css";
 
 const SAVE_DEBOUNCE_MS = 3000;
@@ -12,9 +15,11 @@ const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 2];
 export function AudioPlayerPage() {
     const { variantId } = useParams<{ variantId: string }>();
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const audioRef = useRef<HTMLAudioElement>(null);
     const hlsRef = useRef<Hls | null>(null);
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const clientSessionIdRef = useRef(crypto.randomUUID());
 
     const [item, setItem] = useState<LibraryItemResponse | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -22,6 +27,18 @@ export function AudioPlayerPage() {
     const [speed, setSpeed] = useState(1);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!variantId) return;
+
+        const unsubscribe = subscribeReadingProgress((update) => {
+            if (update.productVariantId !== variantId) return;
+            if (update.clientSessionId === clientSessionIdRef.current) return;
+            showToast("Tiến độ nghe vừa được cập nhật từ thiết bị khác", "info");
+        });
+
+        return unsubscribe;
+    }, [variantId, showToast]);
 
     useEffect(() => {
         if (!variantId) return;
@@ -92,14 +109,23 @@ export function AudioPlayerPage() {
 
     function scheduleSave(currentTimeSeconds: number, playbackSpeed: number) {
         if (!variantId) return;
+        const position = String(Math.floor(currentTimeSeconds));
+
+        saveLocalProgress(variantId, position, playbackSpeed).catch(() => {
+            // IndexedDB lỗi hiếm khi xảy ra, bỏ qua an toàn
+        });
+
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = setTimeout(() => {
             updateProgress(variantId, {
-                position: String(Math.floor(currentTimeSeconds)),
+                position,
                 playbackSpeed,
-            }).catch(() => {
-                // Lưu tiến độ thất bại âm thầm
-            });
+                clientSessionId: clientSessionIdRef.current,
+            })
+                .then(() => markSynced(variantId))
+                .catch(() => {
+                    // Mất mạng - đã có bản ghi "pending" trong IndexedDB, tự đồng bộ lại sau
+                });
         }, SAVE_DEBOUNCE_MS);
     }
 

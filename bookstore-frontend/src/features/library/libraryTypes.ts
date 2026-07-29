@@ -14,6 +14,7 @@ export interface LibraryItemResponse {
 export interface UpdateProgressRequest {
     position: string;
     playbackSpeed: number | null;
+    clientSessionId: string | null;
 }
 
 export interface ContentAccessResponse {

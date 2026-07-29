@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router";
 import ePub, { type Book, type Rendition } from "epubjs";
-import { getAccessUrl } from "./libraryApi";
-import { updateProgress } from "./libraryApi";
+import { getAccessUrl, updateProgress } from "./libraryApi";
 import { getErrorMessage } from "../../lib/apiClient";
+import { saveLocalProgress, markSynced } from "../../lib/offlineProgressStore";
+import { subscribeReadingProgress } from "../../lib/realtimeClient";
+import { useToast } from "../../lib/ToastContext";
 import "./library.css";
 
 const SAVE_DEBOUNCE_MS = 2000;
@@ -11,10 +13,12 @@ const SAVE_DEBOUNCE_MS = 2000;
 export function EpubReaderPage() {
     const { variantId } = useParams<{ variantId: string }>();
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const viewportRef = useRef<HTMLDivElement>(null);
     const bookRef = useRef<Book | null>(null);
     const renditionRef = useRef<Rendition | null>(null);
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const clientSessionIdRef = useRef(crypto.randomUUID());
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -22,15 +26,38 @@ export function EpubReaderPage() {
     const saveProgress = useCallback(
         (cfi: string) => {
             if (!variantId) return;
+
+            saveLocalProgress(variantId, cfi, null).catch(() => {
+                // IndexedDB lỗi hiếm khi xảy ra, bỏ qua an toàn
+            });
+
             if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
             saveTimeoutRef.current = setTimeout(() => {
-                updateProgress(variantId, { position: cfi, playbackSpeed: null }).catch(() => {
-                    // Lưu tiến độ thất bại âm thầm - không chặn trải nghiệm đọc
-                });
+                updateProgress(variantId, {
+                    position: cfi,
+                    playbackSpeed: null,
+                    clientSessionId: clientSessionIdRef.current,
+                })
+                    .then(() => markSynced(variantId))
+                    .catch(() => {
+                        // Mất mạng - đã có bản ghi "pending" trong IndexedDB, tự đồng bộ lại sau
+                    });
             }, SAVE_DEBOUNCE_MS);
         },
         [variantId]
     );
+
+    useEffect(() => {
+        if (!variantId) return;
+
+        const unsubscribe = subscribeReadingProgress((update) => {
+            if (update.productVariantId !== variantId) return;
+            if (update.clientSessionId === clientSessionIdRef.current) return;
+            showToast("Tiến độ đọc vừa được cập nhật từ thiết bị khác", "info");
+        });
+
+        return unsubscribe;
+    }, [variantId, showToast]);
 
     useEffect(() => {
         if (!variantId || !viewportRef.current) return;
