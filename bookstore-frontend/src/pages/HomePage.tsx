@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { RecommendationSection } from "../features/reviews/RecommendationSection";
 import "./home.css";
 
 export default function HomePage() {
@@ -28,6 +29,8 @@ export default function HomePage() {
                     <p>Mua cả ebook lẫn sách giấy trong cùng một đơn hàng, thanh toán một lần duy nhất.</p>
                 </div>
             </div>
+
+            <RecommendationSection />
         </div>
     );
 }
