@@ -41,14 +41,14 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderLineItemRepository orderLineItemRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
-    private final CartService cartService;
     private final PaymentGateway paymentGateway;
     private final InventoryService inventoryService;
     private final ShippingService shippingService;
 
     @Transactional
     public CheckoutResponse checkout(UUID userId, @Nullable CheckoutRequest request) {
-        Order cart = cartService.getOrCreateDraftCart(userId);
+        Order cart = orderRepository.findDraftByUserIdForUpdate(userId)
+                .orElseThrow(CartEmptyException::new);
         UUID cartId = Objects.requireNonNull(cart.getId(), "Cart order id must not be null after persist");
 
         List<OrderLineItem> lineItems = orderLineItemRepository.findByOrderId(cartId);

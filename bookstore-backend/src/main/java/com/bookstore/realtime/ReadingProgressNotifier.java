@@ -4,9 +4,10 @@ import com.bookstore.library.event.ReadingProgressUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
@@ -16,7 +17,7 @@ public class ReadingProgressNotifier {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onReadingProgressUpdated(ReadingProgressUpdatedEvent event) {
         try {
             messagingTemplate.convertAndSendToUser(

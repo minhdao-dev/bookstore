@@ -13,8 +13,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -63,7 +65,7 @@ public class VNPayGateway implements PaymentGateway {
         String signedParamString = buildSignedParamString(signParams);
         String expectedHash = VNPayHashUtil.hmacSHA512(properties.hashSecret(), signedParamString);
 
-        boolean signatureValid = expectedHash.equalsIgnoreCase(receivedHash);
+        boolean signatureValid = receivedHash != null && constantTimeEquals(expectedHash, receivedHash);
         UUID orderId = parseOrderId(params.get("vnp_TxnRef"));
         BigDecimal amount = parseAmount(params.get("vnp_Amount"));
         String gatewayTransactionId = params.get("vnp_TransactionNo");
@@ -117,5 +119,11 @@ public class VNPayGateway implements PaymentGateway {
 
     private String encode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    private boolean constantTimeEquals(String expected, String actual) {
+        byte[] expectedBytes = expected.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8);
+        byte[] actualBytes = actual.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(expectedBytes, actualBytes);
     }
 }
