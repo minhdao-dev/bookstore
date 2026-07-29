@@ -6,9 +6,11 @@ import com.bookstore.entitlement.repository.EntitlementRepository;
 import com.bookstore.library.dto.LibraryItemResponse;
 import com.bookstore.library.dto.UpdateProgressRequest;
 import com.bookstore.library.entity.ReadingProgress;
+import com.bookstore.library.event.ReadingProgressUpdatedEvent;
 import com.bookstore.library.exception.LibraryAccessDeniedException;
 import com.bookstore.library.repository.ReadingProgressRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class LibraryService {
 
     private final EntitlementRepository entitlementRepository;
     private final ReadingProgressRepository readingProgressRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<LibraryItemResponse> getLibrary(UUID userId) {
         return entitlementRepository.findByUserId(userId).stream()
@@ -56,6 +59,11 @@ public class LibraryService {
         progress.setPlaybackSpeed(request.playbackSpeed());
 
         readingProgressRepository.save(progress);
+
+        eventPublisher.publishEvent(new ReadingProgressUpdatedEvent(
+                userId, productVariantId, request.position(), request.playbackSpeed(),
+                Instant.now(), request.clientSessionId()
+        ));
     }
 
     private boolean isCurrentlyValid(Entitlement entitlement) {

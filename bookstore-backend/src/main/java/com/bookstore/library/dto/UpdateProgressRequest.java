@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public record UpdateProgressRequest(
         String position,
-        BigDecimal playbackSpeed
+        BigDecimal playbackSpeed,
+        String clientSessionId
 ) {
 }

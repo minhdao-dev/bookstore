@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/shipping/**").permitAll()
                         .requestMatchers("/api/payment/vnpay/ipn").permitAll()
                         .requestMatchers("/api/webhooks/ghn/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
