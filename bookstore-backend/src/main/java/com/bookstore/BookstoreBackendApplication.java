@@ -1,6 +1,7 @@
 package com.bookstore;
 
 import com.bookstore.auth.security.JwtProperties;
+import com.bookstore.content.FfmpegProperties;
 import com.bookstore.content.MinioProperties;
 import com.bookstore.payment.vnpay.VNPayProperties;
 import com.bookstore.shipping.ghn.GhnProperties;
@@ -9,7 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties({JwtProperties.class, VNPayProperties.class, MinioProperties.class, GhnProperties.class})
+@EnableConfigurationProperties({JwtProperties.class, VNPayProperties.class, MinioProperties.class, GhnProperties.class, FfmpegProperties.class})
 public class BookstoreBackendApplication {
 
     public static void main(String[] args) {

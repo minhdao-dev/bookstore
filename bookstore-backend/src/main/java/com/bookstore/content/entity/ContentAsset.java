@@ -45,6 +45,9 @@ public class ContentAsset {
     @Column(name = "file_size_bytes")
     private @Nullable Long fileSizeBytes;
 
+    @Column(name = "hls_ready", nullable = false)
+    private boolean hlsReady = false;
+
     @Column(name = "uploaded_at", nullable = false, updatable = false)
     private @Nullable Instant uploadedAt;
 

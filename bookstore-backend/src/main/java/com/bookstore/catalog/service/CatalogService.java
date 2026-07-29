@@ -12,15 +12,20 @@ import com.bookstore.catalog.exception.ProductVariantInUseException;
 import com.bookstore.catalog.exception.ProductVariantNotFoundException;
 import com.bookstore.catalog.repository.BookRepository;
 import com.bookstore.catalog.repository.ProductVariantRepository;
+import com.bookstore.catalog.search.BookIndexingService;
+import com.bookstore.catalog.search.BookSearchProvider;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -28,19 +33,35 @@ public class CatalogService {
 
     private final BookRepository bookRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final BookSearchProvider bookSearchProvider;
+    private final BookIndexingService bookIndexingService;
 
     public CatalogService(BookRepository bookRepository,
-                          ProductVariantRepository productVariantRepository) {
+                          ProductVariantRepository productVariantRepository,
+                          BookSearchProvider bookSearchProvider,
+                          BookIndexingService bookIndexingService) {
         this.bookRepository = bookRepository;
         this.productVariantRepository = productVariantRepository;
+        this.bookSearchProvider = bookSearchProvider;
+        this.bookIndexingService = bookIndexingService;
     }
 
     public Page<BookResponse> search(String keyword, Pageable pageable) {
-        Page<Book> books = (keyword == null || keyword.isBlank())
-                ? bookRepository.findAll(pageable)
-                : bookRepository.searchByKeyword(keyword, pageable);
+        if (keyword == null || keyword.isBlank()) {
+            return bookRepository.findAll(pageable).map(this::toResponse);
+        }
 
-        return books.map(this::toResponse);
+        Page<UUID> idPage = bookSearchProvider.search(keyword, pageable);
+        Map<UUID, Book> bookById = bookRepository.findAllById(idPage.getContent()).stream()
+                .collect(Collectors.toMap(book -> Objects.requireNonNull(book.getId()), book -> book));
+
+        List<BookResponse> ordered = idPage.getContent().stream()
+                .map(bookById::get)
+                .filter(Objects::nonNull)
+                .map(this::toResponse)
+                .toList();
+
+        return new PageImpl<>(ordered, pageable, idPage.getTotalElements());
     }
 
     public BookResponse getById(UUID bookId) {
@@ -54,6 +75,7 @@ public class CatalogService {
         Book book = new Book();
         applyRequest(book, request);
         bookRepository.save(book);
+        bookIndexingService.indexBook(book);
         return toResponse(book);
     }
 
@@ -62,6 +84,7 @@ public class CatalogService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
         applyRequest(book, request);
+        bookIndexingService.indexBook(book);
         return toResponse(book);
     }
 
@@ -76,6 +99,7 @@ public class CatalogService {
         } catch (DataIntegrityViolationException ex) {
             throw new BookInUseException(bookId);
         }
+        bookIndexingService.deleteBook(bookId);
     }
 
     @Transactional

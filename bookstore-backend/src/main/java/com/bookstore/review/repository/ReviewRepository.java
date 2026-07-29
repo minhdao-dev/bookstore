@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,4 +22,11 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     @Query("SELECT COALESCE(AVG(r.rating), 0) FROM Review r WHERE r.book.id = :bookId")
     BigDecimal findAverageRatingByBookId(@Param("bookId") UUID bookId);
+
+    @Query(value = """
+            SELECT book_id AS bookId, COALESCE(AVG(rating), 0) AS avgRating, COUNT(id) AS reviewCount
+            FROM review
+            GROUP BY book_id
+            """, nativeQuery = true)
+    List<BookRatingSummaryProjection> findAllRatingsSummary();
 }

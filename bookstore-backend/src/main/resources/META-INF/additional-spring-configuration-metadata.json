@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "catalog.search-provider",
+      "type": "java.lang.String",
+      "description": "postgres or elasticsearch.",
+      "defaultValue": "postgres"
+    }
+  ]
+}

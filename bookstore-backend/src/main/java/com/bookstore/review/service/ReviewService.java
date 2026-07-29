@@ -5,6 +5,7 @@ import com.bookstore.auth.repository.UserRepository;
 import com.bookstore.catalog.entity.Book;
 import com.bookstore.catalog.exception.BookNotFoundException;
 import com.bookstore.catalog.repository.BookRepository;
+import com.bookstore.catalog.search.BookIndexingService;
 import com.bookstore.order.repository.OrderLineItemRepository;
 import com.bookstore.review.dto.RatingSummaryResponse;
 import com.bookstore.review.dto.ReviewRequest;
@@ -34,6 +35,7 @@ public class ReviewService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final OrderLineItemRepository orderLineItemRepository;
+    private final BookIndexingService bookIndexingService;
 
     public Page<ReviewResponse> getReviewsForBook(UUID bookId, Pageable pageable) {
         return reviewRepository.findByBookId(bookId, pageable).map(this::toResponse);
@@ -64,6 +66,7 @@ public class ReviewService {
         Review review = new Review(book, user, request.rating(), request.comment());
         reviewRepository.save(review);
 
+        syncRatingToIndex(request.bookId());
         return toResponse(review);
     }
 
@@ -79,6 +82,7 @@ public class ReviewService {
         review.setRating(request.rating());
         review.setComment(request.comment());
 
+        syncRatingToIndex(Objects.requireNonNull(review.getBook().getId()));
         return toResponse(review);
     }
 
@@ -91,7 +95,17 @@ public class ReviewService {
             throw new ReviewAccessDeniedException();
         }
 
+        UUID bookId = Objects.requireNonNull(review.getBook().getId());
         reviewRepository.delete(review);
+        syncRatingToIndex(bookId);
+    }
+
+    private void syncRatingToIndex(UUID bookId) {
+        long reviewCount = reviewRepository.countByBookId(bookId);
+        double averageRating = reviewCount == 0
+                ? 0.0
+                : reviewRepository.findAverageRatingByBookId(bookId).doubleValue();
+        bookIndexingService.updateRating(bookId, averageRating, reviewCount);
     }
 
     private ReviewResponse toResponse(Review review) {

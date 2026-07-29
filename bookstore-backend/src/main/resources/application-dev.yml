@@ -5,3 +5,5 @@ spring:
     password: bookstore
   jpa:
     show-sql: true
+  elasticsearch:
+    uris: http://localhost:9200

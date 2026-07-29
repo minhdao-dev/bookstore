@@ -35,3 +35,9 @@ ghn:
   base-url: https://dev-online-gateway.ghn.vn/shiip/public-api
   default-service-type-id: 2
   webhook-secret: ${GHN_WEBHOOK_SECRET:changeme}
+catalog:
+  search-provider: elasticsearch
+ffmpeg:
+  path: ${FFMPEG_PATH:ffmpeg}
+  segment-duration-seconds: 10
+  audio-bitrate: 128k
