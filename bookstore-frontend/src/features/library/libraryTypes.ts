@@ -18,5 +18,6 @@ export interface UpdateProgressRequest {
 
 export interface ContentAccessResponse {
     accessUrl: string;
-    expiresInMinutes: number;
+    expiryMinutes: number;
+    hlsReady: boolean;
 }

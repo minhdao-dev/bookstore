@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import Hls from "hls.js";
 import { getAccessUrl, getLibrary, updateProgress } from "./libraryApi";
 import type { LibraryItemResponse } from "./libraryTypes";
-import { getErrorMessage } from "../../lib/apiClient";
+import { getErrorMessage, getStoredToken, API_BASE_URL } from "../../lib/apiClient";
 import "./library.css";
 
 const SAVE_DEBOUNCE_MS = 3000;
@@ -12,10 +13,12 @@ export function AudioPlayerPage() {
     const { variantId } = useParams<{ variantId: string }>();
     const navigate = useNavigate();
     const audioRef = useRef<HTMLAudioElement>(null);
+    const hlsRef = useRef<Hls | null>(null);
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [item, setItem] = useState<LibraryItemResponse | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const [isStreaming, setIsStreaming] = useState(false);
     const [speed, setSpeed] = useState(1);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -27,7 +30,15 @@ export function AudioPlayerPage() {
         Promise.all([getAccessUrl(variantId), getLibrary()])
             .then(([access, library]) => {
                 if (cancelled) return;
-                setAudioUrl(access.accessUrl);
+
+                if (access.hlsReady && Hls.isSupported()) {
+                    setAudioUrl(`${API_BASE_URL}/api/content/variants/${variantId}/hls/playlist.m3u8`);
+                    setIsStreaming(true);
+                } else {
+                    setAudioUrl(access.accessUrl);
+                    setIsStreaming(false);
+                }
+
                 const found = library.find((i) => i.productVariantId === variantId) ?? null;
                 setItem(found);
                 if (found?.playbackSpeed) setSpeed(found.playbackSpeed);
@@ -43,6 +54,32 @@ export function AudioPlayerPage() {
             cancelled = true;
         };
     }, [variantId]);
+
+    useEffect(() => {
+        if (!audioUrl || !audioRef.current) return;
+
+        if (isStreaming) {
+            const token = getStoredToken();
+            const hls = new Hls({
+                xhrSetup: (xhr) => {
+                    if (token) {
+                        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+                    }
+                },
+            });
+            hlsRef.current = hls;
+            hls.loadSource(audioUrl);
+            hls.attachMedia(audioRef.current);
+
+            return () => {
+                hls.destroy();
+                hlsRef.current = null;
+            };
+        }
+
+        audioRef.current.src = audioUrl;
+        return undefined;
+    }, [audioUrl, isStreaming]);
 
     useEffect(() => {
         if (audioRef.current && item?.position) {
@@ -86,19 +123,18 @@ export function AudioPlayerPage() {
     return (
         <div className="player-page">
             <h1>{item?.bookTitle ?? "Audiobook"}</h1>
-            <p className="player-page__author">Đang nghe</p>
+            <p className="player-page__author">
+                Đang nghe {isStreaming && <span className="player-page__badge">· Streaming HLS</span>}
+            </p>
 
-            {audioUrl && (
-                <audio
-                    ref={audioRef}
-                    src={audioUrl}
-                    controls
-                    onTimeUpdate={handleTimeUpdate}
-                    onLoadedMetadata={() => {
-                        if (audioRef.current) audioRef.current.playbackRate = speed;
-                    }}
-                />
-            )}
+            <audio
+                ref={audioRef}
+                controls
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={() => {
+                    if (audioRef.current) audioRef.current.playbackRate = speed;
+                }}
+            />
 
             <div className="player-speed">
                 <label htmlFor="speed">Tốc độ phát</label>

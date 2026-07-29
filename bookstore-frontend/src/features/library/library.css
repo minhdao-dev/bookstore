@@ -178,3 +178,9 @@
     background: transparent;
     color: var(--ink);
 }
+
+.player-page__badge {
+    color: var(--brass);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
