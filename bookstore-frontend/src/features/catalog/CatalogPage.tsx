@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { searchBooks } from "./catalogApi";
 import type { BookResponse } from "./catalogTypes";
 import { formatPrice } from "../../lib/format";
@@ -22,13 +22,19 @@ function BookCardSkeleton() {
 }
 
 export function CatalogPage() {
-    const [keywordInput, setKeywordInput] = useState("");
-    const [keyword, setKeyword] = useState("");
-    const [page, setPage] = useState(0);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const keyword = searchParams.get("keyword") ?? "";
+    const page = Number(searchParams.get("page") ?? "0");
+
+    const [keywordInput, setKeywordInput] = useState(keyword);
     const [books, setBooks] = useState<BookResponse[]>([]);
     const [totalPages, setTotalPages] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setKeywordInput(keyword);
+    }, [keyword]);
 
     useEffect(() => {
         let cancelled = false;
@@ -56,8 +62,18 @@ export function CatalogPage() {
 
     function handleSearchSubmit(event: FormEvent) {
         event.preventDefault();
-        setPage(0);
-        setKeyword(keywordInput.trim());
+        const trimmed = keywordInput.trim();
+        setSearchParams(trimmed ? { keyword: trimmed } : {});
+    }
+
+    function goToPage(nextPage: number) {
+        const params = new URLSearchParams(searchParams);
+        if (nextPage === 0) {
+            params.delete("page");
+        } else {
+            params.set("page", String(nextPage));
+        }
+        setSearchParams(params);
     }
 
     function minPrice(book: BookResponse): string | null {
@@ -112,7 +128,7 @@ export function CatalogPage() {
                     </div>
 
                     <div className="catalog-pagination">
-                        <button type="button" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                        <button type="button" disabled={page === 0} onClick={() => goToPage(page - 1)}>
                             Trang trước
                         </button>
                         <span>
@@ -121,7 +137,7 @@ export function CatalogPage() {
                         <button
                             type="button"
                             disabled={page + 1 >= totalPages}
-                            onClick={() => setPage((p) => p + 1)}
+                            onClick={() => goToPage(page + 1)}
                         >
                             Trang sau
                         </button>
