@@ -2,6 +2,7 @@ package com.bookstore.auth.controller;
 
 import com.bookstore.auth.dto.AuthResponse;
 import com.bookstore.auth.dto.LoginRequest;
+import com.bookstore.auth.dto.RefreshTokenRequest;
 import com.bookstore.auth.dto.RegisterRequest;
 import com.bookstore.auth.service.AuthService;
 import jakarta.validation.Valid;
@@ -30,5 +31,16 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request.refreshToken()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        authService.logout(request.refreshToken());
+        return ResponseEntity.noContent().build();
     }
 }
