@@ -1,5 +1,6 @@
 package com.bookstore.order.service;
 
+import com.bookstore.auth.exception.EmailNotVerifiedException;
 import com.bookstore.inventory.service.InventoryService;
 import com.bookstore.order.dto.CheckoutRequest;
 import com.bookstore.order.dto.CheckoutResponse;
@@ -50,6 +51,10 @@ public class OrderService {
         Order cart = orderRepository.findDraftByUserIdForUpdate(userId)
                 .orElseThrow(CartEmptyException::new);
         UUID cartId = Objects.requireNonNull(cart.getId(), "Cart order id must not be null after persist");
+
+        if (!cart.getUser().isEmailVerified()) {
+            throw new EmailNotVerifiedException();
+        }
 
         List<OrderLineItem> lineItems = orderLineItemRepository.findByOrderId(cartId);
         if (lineItems.isEmpty()) {

@@ -5,67 +5,66 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.Base64;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
 
-    private static final String KEY_PREFIX = "refresh_token:";
-    private static final int TOKEN_BYTE_LENGTH = 32;
+    private static final String TOKEN_KEY_PREFIX = "refresh_token:";
+    private static final String USER_INDEX_KEY_PREFIX = "refresh_token_index:";
 
+    private final OpaqueTokenStore tokenStore;
     private final StringRedisTemplate redisTemplate;
     private final JwtProperties properties;
-    private final SecureRandom secureRandom = new SecureRandom();
 
     public String issue(UUID userId) {
-        String rawToken = generateRawToken();
         Duration ttl = Duration.ofDays(properties.refreshTokenExpirationDays());
-        redisTemplate.opsForValue().set(redisKey(rawToken), userId.toString(), ttl);
+        String rawToken = tokenStore.issue(TOKEN_KEY_PREFIX, userId.toString(), ttl);
+        indexForUser(userId, rawToken, ttl);
         return rawToken;
     }
 
     public UUID validateAndRotate(String rawToken) {
         UUID userId = validate(rawToken);
-        redisTemplate.delete(redisKey(rawToken));
+        revokeInternal(userId, rawToken);
         return userId;
     }
 
     public void revoke(String rawToken) {
-        redisTemplate.delete(redisKey(rawToken));
+        tokenStore.peek(TOKEN_KEY_PREFIX, rawToken).ifPresent(storedUserId ->
+                revokeInternal(UUID.fromString(storedUserId), rawToken));
+    }
+
+    public void revokeAllForUser(UUID userId) {
+        String indexKey = userIndexKey(userId);
+        Set<String> tokenKeys = redisTemplate.opsForSet().members(indexKey);
+        if (tokenKeys != null && !tokenKeys.isEmpty()) {
+            redisTemplate.delete(tokenKeys);
+        }
+        redisTemplate.delete(indexKey);
     }
 
     private UUID validate(String rawToken) {
-        String storedUserId = redisTemplate.opsForValue().get(redisKey(rawToken));
-        if (storedUserId == null) {
-            throw new InvalidRefreshTokenException();
-        }
+        String storedUserId = tokenStore.peek(TOKEN_KEY_PREFIX, rawToken)
+                .orElseThrow(InvalidRefreshTokenException::new);
         return UUID.fromString(storedUserId);
     }
 
-    private String generateRawToken() {
-        byte[] bytes = new byte[TOKEN_BYTE_LENGTH];
-        secureRandom.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    private void revokeInternal(UUID userId, String rawToken) {
+        tokenStore.revoke(TOKEN_KEY_PREFIX, rawToken);
+        redisTemplate.opsForSet().remove(userIndexKey(userId), tokenStore.buildKey(TOKEN_KEY_PREFIX, rawToken));
     }
 
-    private String redisKey(String rawToken) {
-        return KEY_PREFIX + sha256(rawToken);
+    private void indexForUser(UUID userId, String rawToken, Duration ttl) {
+        String indexKey = userIndexKey(userId);
+        redisTemplate.opsForSet().add(indexKey, tokenStore.buildKey(TOKEN_KEY_PREFIX, rawToken));
+        redisTemplate.expire(indexKey, ttl);
     }
 
-    private String sha256(String rawToken) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(hashBytes);
-        } catch (NoSuchAlgorithmException ex) {
-            throw new IllegalStateException("SHA-256 algorithm not available", ex);
-        }
+    private String userIndexKey(UUID userId) {
+        return USER_INDEX_KEY_PREFIX + userId;
     }
 }
