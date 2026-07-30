@@ -4,6 +4,7 @@ import com.bookstore.order.OrderExpiryProperties;
 import com.bookstore.order.entity.OrderStatus;
 import com.bookstore.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -25,8 +26,9 @@ public class OrderExpiryService {
     private final OrderRepository orderRepository;
     private final OrderExpiryTransactionService orderExpiryTransactionService;
     private final OrderExpiryProperties properties;
-
+    
     @Scheduled(fixedDelayString = "PT5M", initialDelayString = "PT1M")
+    @SchedulerLock(name = "expireAbandonedOrders", lockAtLeastFor = "PT30S", lockAtMostFor = "PT10M")
     public void expireAbandonedOrders() {
         MDC.put("correlationId", "cron-order-expiry-" + UUID.randomUUID());
         try {
