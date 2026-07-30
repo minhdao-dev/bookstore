@@ -120,7 +120,7 @@ public class AuthService {
     private void sendVerificationEmail(User user) {
         UUID userId = Objects.requireNonNull(user.getId());
         String rawToken = emailVerificationTokenService.issue(userId);
-        String verificationLink = notificationProperties.frontendBaseUrl() + "/verify-email.html?token=" + rawToken;
+        String verificationLink = notificationProperties.frontendBaseUrl() + "/verify-email?token=" + rawToken;
         emailService.sendVerificationEmail(user.getEmail(), verificationLink);
     }
 
