@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Order confirmed</title>
+</head>
+<body style="margin:0; padding:0; background-color:#eef0e9; font-family:Arial, sans-serif; color:#201c18;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="520" cellpadding="0" cellspacing="0"
+                   style="background-color:#ffffff; border-radius:8px; padding:32px;">
+                <tr>
+                    <td>
+                        <h1 style="font-size:20px; margin:0 0 16px 0; color:#1c2333;">Van Thu Cac</h1>
+                        <p style="font-size:15px; line-height:1.5; margin:0 0 8px 0;">
+                            Thank you for your order! We have received your payment and are getting it ready.
+                        </p>
+                        <p style="font-size:13px; color:#5c574f; margin:0 0 24px 0;">
+                            Order ID: <span th:text="${orderId}">00000000-0000-0000-0000-000000000000</span>
+                        </p>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                               style="border-collapse:collapse; margin-bottom:16px;">
+                            <tr style="border-bottom:1px solid #e5e1d8;">
+                                <td style="padding:8px 0; font-size:13px; color:#5c574f;">Item</td>
+                                <td style="padding:8px 0; font-size:13px; color:#5c574f; text-align:center;">Qty</td>
+                                <td style="padding:8px 0; font-size:13px; color:#5c574f; text-align:right;">Price</td>
+                            </tr>
+                            <tr th:each="item : ${items}" style="border-bottom:1px solid #f0ede4;">
+                                <td style="padding:8px 0; font-size:14px;">
+                                    <span th:text="${item.bookTitle}">Book title</span>
+                                    <span style="color:#9a9488; font-size:12px;"
+                                          th:text="'(' + ${item.variantFormat} + ')'">(EBOOK)</span>
+                                </td>
+                                <td style="padding:8px 0; font-size:14px; text-align:center;"
+                                    th:text="${item.quantity}">1
+                                </td>
+                                <td style="padding:8px 0; font-size:14px; text-align:right;"
+                                    th:text="${item.unitPrice}">0
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="font-size:15px; font-weight:bold; padding-top:8px;">Total</td>
+                                <td style="font-size:15px; font-weight:bold; text-align:right; padding-top:8px;">
+                                    <span th:text="${totalAmount}">0</span>
+                                    <span th:text="${currency}">VND</span>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size:13px; margin:24px 0 0 0; color:#5c574f;">
+                            Digital items are available in your library right away. Physical items will be
+                            packed and shipped shortly — we will email you again once they are on the way.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Shipment update</title>
+</head>
+<body style="margin:0; padding:0; background-color:#eef0e9; font-family:Arial, sans-serif; color:#201c18;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="480" cellpadding="0" cellspacing="0"
+                   style="background-color:#ffffff; border-radius:8px; padding:32px;">
+                <tr>
+                    <td>
+                        <h1 style="font-size:20px; margin:0 0 16px 0; color:#1c2333;">Van Thu Cac</h1>
+
+                        <p style="font-size:15px; line-height:1.5; margin:0 0 4px 0;" th:switch="${newStatus.name()}">
+                            <span th:case="'SHIPPED'">Your order has left the warehouse and is on its way.</span>
+                            <span th:case="'IN_TRANSIT'">Your order is in transit to your address.</span>
+                            <span th:case="'DELIVERED'">Your order has been delivered. Enjoy your books!</span>
+                            <span th:case="'RETURNED'">Your return has been received and processed.</span>
+                            <span th:case="'FAILED'">There was an issue with your delivery. Our team is looking into it.</span>
+                            <span th:case="*" th:text="'Shipment status updated to ' + ${newStatus}">Shipment status updated</span>
+                        </p>
+
+                        <p style="font-size:13px; color:#5c574f; margin:0 0 24px 0;">
+                            Order ID: <span th:text="${orderId}">00000000-0000-0000-0000-000000000000</span><br/>
+                            <span th:if="${trackingNumber != null}">
+                                Tracking number: <span th:text="${trackingNumber}">VN123456789</span>
+                            </span>
+                        </p>
+
+                        <p style="font-size:13px; margin:0; color:#5c574f;">
+                            You can view the full delivery timeline anytime from your order history page.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

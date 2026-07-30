@@ -10,6 +10,7 @@ import com.bookstore.order.repository.OrderLineItemRepository;
 import com.bookstore.order.repository.OrderRepository;
 import com.bookstore.shipping.entity.Shipment;
 import com.bookstore.shipping.entity.ShipmentStatus;
+import com.bookstore.shipping.event.ShipmentStatusChangedEvent;
 import com.bookstore.shipping.exception.ShipmentNotFoundException;
 import com.bookstore.shipping.repository.ShipmentRepository;
 import com.bookstore.shipping.service.ShippingService;
@@ -20,6 +21,7 @@ import com.bookstore.warehouse.exception.InvalidShipmentTransitionException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +61,7 @@ public class WarehouseOpsService {
     private final OrderRepository orderRepository;
     private final InventoryService inventoryService;
     private final ShippingService shippingService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<ShipmentSummaryResponse> getByStatus(ShipmentStatus status) {
         return shipmentRepository.findByStatus(status).stream()
@@ -164,6 +167,16 @@ public class WarehouseOpsService {
 
         shipment.setStatus(newStatus);
         syncLineItemFulfillmentStatus(order, newStatus);
+
+        if (newStatus != ShipmentStatus.PACKING) {
+            eventPublisher.publishEvent(new ShipmentStatusChangedEvent(
+                    Objects.requireNonNull(order.getId()),
+                    order.getUser().getEmail(),
+                    oldStatus,
+                    newStatus,
+                    shipment.getTrackingNumber()
+            ));
+        }
     }
 
     private void syncLineItemFulfillmentStatus(Order order, ShipmentStatus shipmentStatus) {

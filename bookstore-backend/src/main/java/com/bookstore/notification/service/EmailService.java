@@ -1,6 +1,8 @@
 package com.bookstore.notification.service;
 
 import com.bookstore.notification.NotificationProperties;
+import com.bookstore.order.event.OrderPaidEvent;
+import com.bookstore.shipping.event.ShipmentStatusChangedEvent;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +31,7 @@ public class EmailService {
     public void sendVerificationEmail(String toEmail, String verificationLink) {
         Context context = new Context();
         context.setVariable("verificationLink", verificationLink);
-        send(toEmail, "Verify your Van Thu Cac account", "email/verify-email.html", context);
+        send(toEmail, "Verify your Van Thu Cac account", "email/verify-email", context);
     }
 
     @Async("emailTaskExecutor")
@@ -37,6 +39,26 @@ public class EmailService {
         Context context = new Context();
         context.setVariable("resetLink", resetLink);
         send(toEmail, "Reset your Van Thu Cac password", "email/reset-password", context);
+    }
+
+    @Async("emailTaskExecutor")
+    public void sendOrderConfirmationEmail(OrderPaidEvent event) {
+        Context context = new Context();
+        context.setVariable("orderId", event.orderId());
+        context.setVariable("items", event.items());
+        context.setVariable("totalAmount", event.totalAmount());
+        context.setVariable("currency", event.currency());
+        send(event.userEmail(), "Your Van Thu Cac order is confirmed", "email/order-confirmation", context);
+    }
+
+    @Async("emailTaskExecutor")
+    public void sendShipmentUpdateEmail(ShipmentStatusChangedEvent event) {
+        Context context = new Context();
+        context.setVariable("orderId", event.orderId());
+        context.setVariable("oldStatus", event.oldStatus());
+        context.setVariable("newStatus", event.newStatus());
+        context.setVariable("trackingNumber", event.trackingNumber());
+        send(event.userEmail(), "Shipment update for your order", "email/shipment-update", context);
     }
 
     private void send(String toEmail, String subject, String templateName, Context context) {
