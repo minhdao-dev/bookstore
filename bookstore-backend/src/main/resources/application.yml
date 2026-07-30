@@ -43,6 +43,8 @@ app:
     refresh-token-expiration-days: 7
     issuer: bookstore-backend
     audience: bookstore-client
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
 notification:
   from-address: ${MAIL_FROM_ADDRESS:no-reply@vanthucac.dev}
   frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:5173}

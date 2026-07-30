@@ -5,6 +5,7 @@ import com.bookstore.auth.entity.Role;
 import com.bookstore.auth.entity.User;
 import com.bookstore.auth.exception.UserNotFoundException;
 import com.bookstore.auth.repository.UserRepository;
+import com.bookstore.auth.security.AccessTokenRevocationService;
 import com.bookstore.auth.security.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class AdminUserService {
 
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
+    private final AccessTokenRevocationService accessTokenRevocationService;
 
     public List<UserResponse> getAll() {
         return userRepository.findAll().stream()
@@ -35,6 +37,7 @@ public class AdminUserService {
 
         user.setRole(newRole);
         refreshTokenService.revokeAllForUser(userId);
+        accessTokenRevocationService.revokeAllForUser(userId);
 
         return toResponse(user);
     }

@@ -7,12 +7,14 @@ import com.bookstore.auth.entity.Role;
 import com.bookstore.auth.entity.User;
 import com.bookstore.auth.exception.EmailAlreadyExistsException;
 import com.bookstore.auth.repository.UserRepository;
+import com.bookstore.auth.security.AccessTokenRevocationService;
 import com.bookstore.auth.security.EmailVerificationTokenService;
 import com.bookstore.auth.security.JwtService;
 import com.bookstore.auth.security.PasswordResetTokenService;
 import com.bookstore.auth.security.RefreshTokenService;
 import com.bookstore.notification.NotificationProperties;
 import com.bookstore.notification.service.EmailService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +27,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
@@ -33,31 +36,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final AccessTokenRevocationService accessTokenRevocationService;
     private final EmailVerificationTokenService emailVerificationTokenService;
     private final PasswordResetTokenService passwordResetTokenService;
     private final EmailService emailService;
     private final NotificationProperties notificationProperties;
     private final AuthenticationManager authenticationManager;
-
-    public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtService jwtService,
-                       RefreshTokenService refreshTokenService,
-                       EmailVerificationTokenService emailVerificationTokenService,
-                       PasswordResetTokenService passwordResetTokenService,
-                       EmailService emailService,
-                       NotificationProperties notificationProperties,
-                       AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-        this.refreshTokenService = refreshTokenService;
-        this.emailVerificationTokenService = emailVerificationTokenService;
-        this.passwordResetTokenService = passwordResetTokenService;
-        this.emailService = emailService;
-        this.notificationProperties = notificationProperties;
-        this.authenticationManager = authenticationManager;
-    }
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -135,7 +119,8 @@ public class AuthService {
 
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         refreshTokenService.revokeAllForUser(userId);
-        log.info("Password reset completed for user {}, all refresh tokens revoked", userId);
+        accessTokenRevocationService.revokeAllForUser(userId);
+        log.info("Password reset completed for user {}, all refresh and access tokens revoked", userId);
     }
 
     private void sendVerificationEmail(User user) {

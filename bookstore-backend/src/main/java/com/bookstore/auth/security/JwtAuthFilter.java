@@ -13,15 +13,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final AccessTokenRevocationService accessTokenRevocationService;
 
-    public JwtAuthFilter(JwtService jwtService) {
+    public JwtAuthFilter(JwtService jwtService, AccessTokenRevocationService accessTokenRevocationService) {
         this.jwtService = jwtService;
+        this.accessTokenRevocationService = accessTokenRevocationService;
     }
 
     @Override
@@ -40,7 +44,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         try {
             Claims claims = jwtService.parseAndValidate(token);
-            String userId = claims.getSubject();
+            UUID userId = UUID.fromString(claims.getSubject());
             String role = (String) claims.get("role");
 
             if (role == null) {
@@ -49,11 +53,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
+            Instant issuedAt = claims.getIssuedAt().toInstant();
+            if (accessTokenRevocationService.isRevoked(userId, issuedAt)) {
+                SecurityContextHolder.clearContext();
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
-            var authentication = new UsernamePasswordAuthenticationToken(userId, null, authorities);
+            var authentication = new UsernamePasswordAuthenticationToken(userId.toString(), null, authorities);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-        } catch (JwtException ex) {
+        } catch (JwtException | IllegalArgumentException ex) {
             SecurityContextHolder.clearContext();
         }
 

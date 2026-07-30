@@ -1,5 +1,6 @@
 package com.bookstore;
 
+import com.bookstore.auth.security.CorsProperties;
 import com.bookstore.auth.security.JwtProperties;
 import com.bookstore.auth.security.RateLimitProperties;
 import com.bookstore.content.FfmpegProperties;
@@ -15,7 +16,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @SpringBootApplication
 @EnableConfigurationProperties({JwtProperties.class, VNPayProperties.class, MinioProperties.class,
         GhnProperties.class, FfmpegProperties.class, NotificationProperties.class, OrderExpiryProperties.class,
-        RateLimitProperties.class})
+        RateLimitProperties.class, CorsProperties.class})
 public class BookstoreBackendApplication {
 
     public static void main(String[] args) {
