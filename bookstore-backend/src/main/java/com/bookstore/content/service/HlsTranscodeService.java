@@ -6,8 +6,7 @@ import com.bookstore.content.exception.ContentStorageException;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -22,9 +21,8 @@ import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class HlsTranscodeService {
-
-    private static final Logger log = LoggerFactory.getLogger(HlsTranscodeService.class);
 
     private final MinioClient minioClient;
     private final MinioProperties minioProperties;

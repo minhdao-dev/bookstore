@@ -19,28 +19,19 @@ import com.bookstore.warehouse.dto.PackingSlipResponse;
 import com.bookstore.warehouse.dto.ShipmentSummaryResponse;
 import com.bookstore.warehouse.exception.InvalidShipmentTransitionException;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class WarehouseOpsService {
-
-    private static final Logger log = LoggerFactory.getLogger(WarehouseOpsService.class);
 
     private static final Map<ShipmentStatus, Set<ShipmentStatus>> ALLOWED_TRANSITIONS = new EnumMap<>(ShipmentStatus.class);
 

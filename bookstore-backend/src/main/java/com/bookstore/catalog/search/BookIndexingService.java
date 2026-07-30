@@ -2,17 +2,15 @@ package com.bookstore.catalog.search;
 
 import com.bookstore.catalog.entity.Book;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class BookIndexingService {
-
-    private static final Logger log = LoggerFactory.getLogger(BookIndexingService.class);
 
     private final BookSearchRepository bookSearchRepository;
 

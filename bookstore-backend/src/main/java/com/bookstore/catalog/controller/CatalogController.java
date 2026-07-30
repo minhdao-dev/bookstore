@@ -1,12 +1,9 @@
 package com.bookstore.catalog.controller;
 
-import com.bookstore.catalog.dto.BookRequest;
-import com.bookstore.catalog.dto.BookResponse;
-import com.bookstore.catalog.dto.ProductVariantRequest;
-import com.bookstore.catalog.dto.ProductVariantResponse;
-import com.bookstore.catalog.dto.VariantStatusUpdateRequest;
+import com.bookstore.catalog.dto.*;
 import com.bookstore.catalog.service.CatalogService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -18,13 +15,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/catalog/books")
+@RequiredArgsConstructor
 public class CatalogController {
 
     private final CatalogService catalogService;
-
-    public CatalogController(CatalogService catalogService) {
-        this.catalogService = catalogService;
-    }
 
     @GetMapping
     public Page<BookResponse> search(@RequestParam(required = false) String keyword,

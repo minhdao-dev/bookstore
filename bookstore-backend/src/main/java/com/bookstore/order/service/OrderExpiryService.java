@@ -4,9 +4,8 @@ import com.bookstore.order.OrderExpiryProperties;
 import com.bookstore.order.entity.OrderStatus;
 import com.bookstore.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,9 +18,8 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderExpiryService {
-
-    private static final Logger log = LoggerFactory.getLogger(OrderExpiryService.class);
 
     private final OrderRepository orderRepository;
     private final OrderExpiryTransactionService orderExpiryTransactionService;

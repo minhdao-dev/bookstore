@@ -1,19 +1,19 @@
 package com.bookstore.catalog.service;
 
-import com.bookstore.catalog.dto.*;
+import com.bookstore.catalog.dto.BookRequest;
+import com.bookstore.catalog.dto.BookResponse;
+import com.bookstore.catalog.dto.ProductVariantRequest;
+import com.bookstore.catalog.dto.ProductVariantResponse;
 import com.bookstore.catalog.entity.Book;
 import com.bookstore.catalog.entity.ProductType;
 import com.bookstore.catalog.entity.ProductVariant;
 import com.bookstore.catalog.entity.VariantStatus;
-import com.bookstore.catalog.exception.BookInUseException;
-import com.bookstore.catalog.exception.BookNotFoundException;
-import com.bookstore.catalog.exception.InvalidProductVariantException;
-import com.bookstore.catalog.exception.ProductVariantInUseException;
-import com.bookstore.catalog.exception.ProductVariantNotFoundException;
+import com.bookstore.catalog.exception.*;
 import com.bookstore.catalog.repository.BookRepository;
 import com.bookstore.catalog.repository.ProductVariantRepository;
 import com.bookstore.catalog.search.BookIndexingService;
 import com.bookstore.catalog.search.BookSearchProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,22 +30,13 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class CatalogService {
 
     private final BookRepository bookRepository;
     private final ProductVariantRepository productVariantRepository;
     private final BookSearchProvider bookSearchProvider;
     private final BookIndexingService bookIndexingService;
-
-    public CatalogService(BookRepository bookRepository,
-                          ProductVariantRepository productVariantRepository,
-                          BookSearchProvider bookSearchProvider,
-                          BookIndexingService bookIndexingService) {
-        this.bookRepository = bookRepository;
-        this.productVariantRepository = productVariantRepository;
-        this.bookSearchProvider = bookSearchProvider;
-        this.bookIndexingService = bookIndexingService;
-    }
 
     public Page<BookResponse> search(String keyword, Pageable pageable) {
         if (keyword == null || keyword.isBlank()) {

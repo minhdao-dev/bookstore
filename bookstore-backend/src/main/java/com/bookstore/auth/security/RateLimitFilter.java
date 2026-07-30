@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.util.Set;
 
 @Component
+@RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final Set<String> AUTH_RATE_LIMITED_PATHS = Set.of(
@@ -33,11 +35,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimiterService rateLimiterService;
     private final JsonMapper jsonMapper;
-
-    public RateLimitFilter(RateLimiterService rateLimiterService, JsonMapper jsonMapper) {
-        this.rateLimiterService = rateLimiterService;
-        this.jsonMapper = jsonMapper;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

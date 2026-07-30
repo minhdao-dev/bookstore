@@ -2,11 +2,7 @@ package com.bookstore.order.service;
 
 import com.bookstore.entitlement.service.EntitlementService;
 import com.bookstore.inventory.service.InventoryService;
-import com.bookstore.order.entity.Order;
-import com.bookstore.order.entity.OrderLineItem;
-import com.bookstore.order.entity.OrderStatus;
-import com.bookstore.order.entity.PaymentTransaction;
-import com.bookstore.order.entity.PaymentTransactionStatus;
+import com.bookstore.order.entity.*;
 import com.bookstore.order.event.OrderPaidEvent;
 import com.bookstore.order.exception.PaymentTransactionNotFoundException;
 import com.bookstore.order.repository.OrderLineItemRepository;
@@ -16,23 +12,17 @@ import com.bookstore.payment.PaymentCallbackResult;
 import com.bookstore.payment.PaymentGateway;
 import com.bookstore.shipping.service.ShippingService;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentIpnService {
-
-    private static final Logger log = LoggerFactory.getLogger(PaymentIpnService.class);
 
     private final PaymentGateway paymentGateway;
     private final OrderRepository orderRepository;

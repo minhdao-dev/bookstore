@@ -7,16 +7,11 @@ import com.bookstore.auth.entity.Role;
 import com.bookstore.auth.entity.User;
 import com.bookstore.auth.exception.EmailAlreadyExistsException;
 import com.bookstore.auth.repository.UserRepository;
-import com.bookstore.auth.security.AccessTokenRevocationService;
-import com.bookstore.auth.security.EmailVerificationTokenService;
-import com.bookstore.auth.security.JwtService;
-import com.bookstore.auth.security.PasswordResetTokenService;
-import com.bookstore.auth.security.RefreshTokenService;
+import com.bookstore.auth.security.*;
 import com.bookstore.notification.NotificationProperties;
 import com.bookstore.notification.service.EmailService;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,9 +23,8 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
-
-    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;

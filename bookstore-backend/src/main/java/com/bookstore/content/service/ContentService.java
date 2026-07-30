@@ -14,14 +14,9 @@ import com.bookstore.content.repository.ContentAssetRepository;
 import com.bookstore.entitlement.entity.Entitlement;
 import com.bookstore.entitlement.entity.EntitlementStatus;
 import com.bookstore.entitlement.repository.EntitlementRepository;
-import io.minio.GetObjectArgs;
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.Http;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -38,9 +33,8 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ContentService {
-
-    private static final Logger log = LoggerFactory.getLogger(ContentService.class);
 
     private final MinioClient minioClient;
     private final MinioProperties minioProperties;
