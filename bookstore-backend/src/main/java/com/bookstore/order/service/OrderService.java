@@ -30,9 +30,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -152,21 +154,26 @@ public class OrderService {
     }
 
     public Page<OrderResponse> getOrderHistory(UUID userId, Pageable pageable) {
-        return orderRepository.findByUserIdAndStatusNot(userId, OrderStatus.DRAFT, pageable)
-                .map(order -> {
-                    List<OrderLineItemResponse> items = orderLineItemRepository.findByOrderId(order.getId()).stream()
-                            .map(this::toLineItemResponse)
-                            .toList();
+        Page<Order> orderPage = orderRepository.findByUserIdAndStatusNot(userId, OrderStatus.DRAFT, pageable);
 
-                    return new OrderResponse(
-                            order.getId(),
-                            order.getStatus(),
-                            items,
-                            order.getTotalAmount(),
-                            order.getCurrency(),
-                            order.getCreatedAt()
-                    );
-                });
+        List<UUID> orderIds = orderPage.getContent().stream()
+                .map(order -> Objects.requireNonNull(order.getId()))
+                .toList();
+
+        Map<UUID, List<OrderLineItemResponse>> itemsByOrderId = orderLineItemRepository.findByOrderIdIn(orderIds).stream()
+                .collect(Collectors.groupingBy(
+                        item -> Objects.requireNonNull(item.getOrder().getId()),
+                        Collectors.mapping(this::toLineItemResponse, Collectors.toList())
+                ));
+
+        return orderPage.map(order -> new OrderResponse(
+                order.getId(),
+                order.getStatus(),
+                itemsByOrderId.getOrDefault(order.getId(), List.of()),
+                order.getTotalAmount(),
+                order.getCurrency(),
+                order.getCreatedAt()
+        ));
     }
 
     private void applyShippingAddress(Order cart, @Nullable CheckoutRequest request) {

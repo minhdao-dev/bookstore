@@ -7,6 +7,7 @@ import com.bookstore.warehouse.dto.ShipmentSummaryResponse;
 import com.bookstore.warehouse.service.WarehouseOpsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class WarehouseOpsController {
     private final WarehouseOpsService warehouseOpsService;
 
     @GetMapping
-    public List<ShipmentSummaryResponse> getByStatus(@RequestParam ShipmentStatus status) {
+    public List<ShipmentSummaryResponse> getByStatus(@RequestParam(required = false) @Nullable ShipmentStatus status) {
         return warehouseOpsService.getByStatus(status);
     }
 

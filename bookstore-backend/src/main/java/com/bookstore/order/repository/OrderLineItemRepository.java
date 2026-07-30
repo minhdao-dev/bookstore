@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,6 +13,14 @@ import java.util.UUID;
 public interface OrderLineItemRepository extends JpaRepository<OrderLineItem, UUID> {
 
     List<OrderLineItem> findByOrderId(UUID orderId);
+
+    @Query("""
+            SELECT li FROM OrderLineItem li
+            JOIN FETCH li.productVariant pv
+            JOIN FETCH pv.book
+            WHERE li.order.id IN :orderIds
+            """)
+    List<OrderLineItem> findByOrderIdIn(@Param("orderIds") Collection<UUID> orderIds);
 
     Optional<OrderLineItem> findByOrderIdAndProductVariantId(UUID orderId, UUID productVariantId);
 

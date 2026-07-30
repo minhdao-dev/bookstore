@@ -20,6 +20,7 @@ import com.bookstore.warehouse.dto.ShipmentSummaryResponse;
 import com.bookstore.warehouse.exception.InvalidShipmentTransitionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,8 +55,12 @@ public class WarehouseOpsService {
     private final ShippingService shippingService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public List<ShipmentSummaryResponse> getByStatus(ShipmentStatus status) {
-        return shipmentRepository.findByStatus(status).stream()
+    public List<ShipmentSummaryResponse> getByStatus(@Nullable ShipmentStatus status) {
+        List<Shipment> shipments = status != null
+                ? shipmentRepository.findByStatus(status)
+                : shipmentRepository.findAll();
+
+        return shipments.stream()
                 .map(this::toSummary)
                 .toList();
     }
