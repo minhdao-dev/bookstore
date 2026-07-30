@@ -16,6 +16,14 @@ public interface EntitlementRepository extends JpaRepository<Entitlement, UUID> 
 
     List<Entitlement> findByUserId(UUID userId);
 
+    @Query("""
+            SELECT e FROM Entitlement e
+            JOIN FETCH e.productVariant pv
+            JOIN FETCH pv.book
+            WHERE e.user.id = :userId
+            """)
+    List<Entitlement> findByUserIdWithVariantAndBook(@Param("userId") UUID userId);
+
     Optional<Entitlement> findByOrderLineItemId(UUID orderLineItemId);
 
     List<Entitlement> findByUserIdAndProductVariantIdAndStatus(UUID userId, UUID productVariantId, EntitlementStatus status);

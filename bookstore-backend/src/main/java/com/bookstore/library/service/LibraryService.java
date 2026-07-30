@@ -16,8 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,31 +31,34 @@ public class LibraryService {
     private final ApplicationEventPublisher eventPublisher;
 
     public List<LibraryItemResponse> getLibrary(UUID userId) {
-        return entitlementRepository.findByUserId(userId).stream()
+        List<Entitlement> entitlements = entitlementRepository.findByUserIdWithVariantAndBook(userId).stream()
                 .filter(this::isCurrentlyValid)
-                .map(this::toLibraryItemResponse)
+                .toList();
+
+        List<UUID> variantIds = entitlements.stream()
+                .map(this::requireEntitlementVariantId)
+                .toList();
+
+        Map<UUID, ReadingProgress> progressByVariantId = readingProgressRepository
+                .findByUserIdAndProductVariantIdIn(userId, variantIds).stream()
+                .collect(Collectors.toMap(this::requireProgressVariantId, progress -> progress));
+
+        return entitlements.stream()
+                .map(entitlement -> toLibraryItemResponse(entitlement, progressByVariantId))
                 .toList();
     }
 
     @Transactional
     public void updateProgress(UUID userId, UUID productVariantId, UpdateProgressRequest request) {
-        boolean hasAccess = entitlementRepository.findByUserId(userId).stream()
+        Entitlement matchingEntitlement = entitlementRepository.findByUserId(userId).stream()
                 .filter(e -> Objects.equals(e.getProductVariant().getId(), productVariantId))
-                .anyMatch(this::isCurrentlyValid);
-
-        if (!hasAccess) {
-            throw new LibraryAccessDeniedException();
-        }
+                .filter(this::isCurrentlyValid)
+                .findFirst()
+                .orElseThrow(LibraryAccessDeniedException::new);
 
         ReadingProgress progress = readingProgressRepository
                 .findByUserIdAndProductVariantId(userId, productVariantId)
-                .orElseGet(() -> {
-                    Entitlement entitlement = entitlementRepository.findByUserId(userId).stream()
-                            .filter(e -> Objects.equals(e.getProductVariant().getId(), productVariantId))
-                            .findFirst()
-                            .orElseThrow(LibraryAccessDeniedException::new);
-                    return new ReadingProgress(entitlement.getUser(), entitlement.getProductVariant());
-                });
+                .orElseGet(() -> new ReadingProgress(matchingEntitlement.getUser(), matchingEntitlement.getProductVariant()));
 
         progress.setPosition(request.position());
         progress.setPlaybackSpeed(request.playbackSpeed());
@@ -74,15 +79,19 @@ public class LibraryService {
         return expiresAt == null || expiresAt.isAfter(Instant.now());
     }
 
-    private LibraryItemResponse toLibraryItemResponse(Entitlement entitlement) {
+    private UUID requireEntitlementVariantId(Entitlement entitlement) {
+        return Objects.requireNonNull(entitlement.getProductVariant().getId());
+    }
+
+    private UUID requireProgressVariantId(ReadingProgress progress) {
+        return Objects.requireNonNull(progress.getProductVariant().getId());
+    }
+
+    private LibraryItemResponse toLibraryItemResponse(Entitlement entitlement, Map<UUID, ReadingProgress> progressByVariantId) {
         UUID variantId = Objects.requireNonNull(
                 entitlement.getProductVariant().getId(), "Product variant id must not be null");
-        UUID entitlementUserId = Objects.requireNonNull(
-                entitlement.getUser().getId(), "User id must not be null");
 
-        ReadingProgress progress = readingProgressRepository
-                .findByUserIdAndProductVariantId(entitlementUserId, variantId)
-                .orElse(null);
+        ReadingProgress progress = progressByVariantId.get(variantId);
 
         return new LibraryItemResponse(
                 variantId,
