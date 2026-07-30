@@ -1,6 +1,10 @@
 spring:
   application:
     name: bookstore-backend
+  data:
+    redis:
+      repositories:
+        enabled: false
   jpa:
     hibernate:
       ddl-auto: validate
