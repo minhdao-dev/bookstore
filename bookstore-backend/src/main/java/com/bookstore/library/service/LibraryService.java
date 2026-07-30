@@ -1,7 +1,6 @@
 package com.bookstore.library.service;
 
 import com.bookstore.entitlement.entity.Entitlement;
-import com.bookstore.entitlement.entity.EntitlementStatus;
 import com.bookstore.entitlement.repository.EntitlementRepository;
 import com.bookstore.library.dto.LibraryItemResponse;
 import com.bookstore.library.dto.UpdateProgressRequest;
@@ -32,7 +31,7 @@ public class LibraryService {
 
     public List<LibraryItemResponse> getLibrary(UUID userId) {
         List<Entitlement> entitlements = entitlementRepository.findByUserIdWithVariantAndBook(userId).stream()
-                .filter(this::isCurrentlyValid)
+                .filter(Entitlement::isCurrentlyValid)
                 .toList();
 
         List<UUID> variantIds = entitlements.stream()
@@ -52,7 +51,7 @@ public class LibraryService {
     public void updateProgress(UUID userId, UUID productVariantId, UpdateProgressRequest request) {
         Entitlement matchingEntitlement = entitlementRepository.findByUserId(userId).stream()
                 .filter(e -> Objects.equals(e.getProductVariant().getId(), productVariantId))
-                .filter(this::isCurrentlyValid)
+                .filter(Entitlement::isCurrentlyValid)
                 .findFirst()
                 .orElseThrow(LibraryAccessDeniedException::new);
 
@@ -69,14 +68,6 @@ public class LibraryService {
                 userId, productVariantId, request.position(), request.playbackSpeed(),
                 Instant.now(), request.clientSessionId()
         ));
-    }
-
-    private boolean isCurrentlyValid(Entitlement entitlement) {
-        if (entitlement.getStatus() != EntitlementStatus.ACTIVE) {
-            return false;
-        }
-        Instant expiresAt = entitlement.getExpiresAt();
-        return expiresAt == null || expiresAt.isAfter(Instant.now());
     }
 
     private UUID requireEntitlementVariantId(Entitlement entitlement) {

@@ -114,7 +114,6 @@ public class ContentService {
         }
     }
 
-    @Transactional
     public ContentAccessResponse getAccessUrl(UUID userId, UUID productVariantId) {
         requireValidEntitlement(userId, productVariantId);
 
@@ -137,7 +136,6 @@ public class ContentService {
         }
     }
 
-    @Transactional
     public ResponseEntity<byte[]> getHlsFile(UUID userId, UUID productVariantId, String fileName) {
         if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
             throw new ContentAccessDeniedException();

@@ -14,7 +14,14 @@ import java.util.UUID;
 
 public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
-    Page<Review> findByBookId(UUID bookId, Pageable pageable);
+    @Query(value = """
+            SELECT r FROM Review r
+            JOIN FETCH r.book
+            JOIN FETCH r.user
+            WHERE r.book.id = :bookId
+            """,
+            countQuery = "SELECT COUNT(r) FROM Review r WHERE r.book.id = :bookId")
+    Page<Review> findByBookId(@Param("bookId") UUID bookId, Pageable pageable);
 
     Optional<Review> findByBookIdAndUserId(UUID bookId, UUID userId);
 
