@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,20 +49,46 @@ public class CatalogService {
 
     public Page<BookResponse> search(String keyword, Pageable pageable) {
         if (keyword == null || keyword.isBlank()) {
-            return bookRepository.findAll(pageable).map(this::toResponse);
+            Page<Book> page = bookRepository.findAll(pageable);
+            return page.map(toResponseMapper(page.getContent()));
         }
 
         Page<UUID> idPage = bookSearchProvider.search(keyword, pageable);
         Map<UUID, Book> bookById = bookRepository.findAllById(idPage.getContent()).stream()
                 .collect(Collectors.toMap(book -> Objects.requireNonNull(book.getId()), book -> book));
 
-        List<BookResponse> ordered = idPage.getContent().stream()
+        List<Book> booksInOrder = idPage.getContent().stream()
                 .map(bookById::get)
                 .filter(Objects::nonNull)
-                .map(this::toResponse)
+                .toList();
+
+        List<BookResponse> ordered = booksInOrder.stream()
+                .map(toResponseMapper(booksInOrder))
                 .toList();
 
         return new PageImpl<>(ordered, pageable, idPage.getTotalElements());
+    }
+
+    private Function<Book, BookResponse> toResponseMapper(List<Book> books) {
+        List<UUID> bookIds = books.stream()
+                .map(book -> Objects.requireNonNull(book.getId(), "Persisted book must have an id"))
+                .toList();
+
+        Map<UUID, List<ProductVariantResponse>> variantsByBookId = productVariantRepository
+                .findByBookIdIn(bookIds).stream()
+                .collect(Collectors.groupingBy(
+                        variant -> Objects.requireNonNull(variant.getBook().getId()),
+                        Collectors.mapping(this::toVariantResponse, Collectors.toList())
+                ));
+
+        return book -> {
+            UUID bookId = Objects.requireNonNull(book.getId(), "Persisted book must have an id");
+            List<ProductVariantResponse> variants = variantsByBookId.getOrDefault(bookId, List.of());
+            return new BookResponse(
+                    bookId, book.getTitle(), book.getAuthor(), book.getGenre(),
+                    book.getLanguage(), book.getDescription(), book.getPublishedDate(), variants
+            );
+        };
     }
 
     public BookResponse getById(UUID bookId) {
