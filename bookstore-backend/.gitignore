@@ -38,3 +38,6 @@ application-local.yaml
 application-local.properties
 .env
 *.env
+
+### Runtime logs (structured JSON for Loki/Alloy) ###
+logs/

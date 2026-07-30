@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/payment/vnpay/ipn").permitAll()
                         .requestMatchers("/api/webhooks/ghn/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

@@ -6,6 +6,7 @@ import com.bookstore.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,15 @@ public class OrderExpiryService {
 
     @Scheduled(fixedDelayString = "PT5M", initialDelayString = "PT1M")
     public void expireAbandonedOrders() {
+        MDC.put("correlationId", "cron-order-expiry-" + UUID.randomUUID());
+        try {
+            runExpiry();
+        } finally {
+            MDC.remove("correlationId");
+        }
+    }
+
+    private void runExpiry() {
         Instant cutoff = Instant.now().minus(properties.pendingPaymentTtlMinutes(), ChronoUnit.MINUTES);
         List<UUID> candidateOrderIds = orderRepository.findByStatusAndUpdatedAtBefore(OrderStatus.PENDING_PAYMENT, cutoff)
                 .stream()

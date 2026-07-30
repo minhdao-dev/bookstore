@@ -42,7 +42,56 @@ services:
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
 
+  loki:
+    image: grafana/loki:3.6.12
+    container_name: bookstore-loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+
+  mailpit:
+    image: axllent/mailpit:v1.30.6
+    container_name: bookstore-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    volumes:
+      - mailpit-data:/data
+    environment:
+      MP_DATABASE: /data/mailpit.db
+
+  alloy:
+    image: grafana/alloy:v1.18.0
+    container_name: bookstore-alloy
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    volumes:
+      - ./observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - ./logs:/var/log/bookstore:ro
+    ports:
+      - "12345:12345"
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:13.1.1
+    container_name: bookstore-grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./observability/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - loki
+
 volumes:
   postgres-data:
   minio-data:
   elasticsearch-data:
+  loki-data:
+  grafana-data:
+  mailpit-data:
