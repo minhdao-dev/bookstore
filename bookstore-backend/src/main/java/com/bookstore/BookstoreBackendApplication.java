@@ -3,6 +3,7 @@ package com.bookstore;
 import com.bookstore.auth.security.CorsProperties;
 import com.bookstore.auth.security.JwtProperties;
 import com.bookstore.auth.security.RateLimitProperties;
+import com.bookstore.catalog.search.BookSearchRepository;
 import com.bookstore.content.FfmpegProperties;
 import com.bookstore.content.MinioProperties;
 import com.bookstore.notification.NotificationProperties;
@@ -12,11 +13,13 @@ import com.bookstore.shipping.ghn.GhnProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
 @SpringBootApplication
 @EnableConfigurationProperties({JwtProperties.class, VNPayProperties.class, MinioProperties.class,
         GhnProperties.class, FfmpegProperties.class, NotificationProperties.class, OrderExpiryProperties.class,
         RateLimitProperties.class, CorsProperties.class})
+@EnableElasticsearchRepositories(basePackageClasses = BookSearchRepository.class)
 public class BookstoreBackendApplication {
 
     public static void main(String[] args) {

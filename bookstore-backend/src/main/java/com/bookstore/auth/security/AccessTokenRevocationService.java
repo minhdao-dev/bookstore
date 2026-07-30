@@ -19,7 +19,7 @@ public class AccessTokenRevocationService {
 
     public void revokeAllForUser(UUID userId) {
         Duration ttl = Duration.ofMillis(jwtProperties.expirationMs());
-        redisTemplate.opsForValue().set(key(userId), Long.toString(Instant.now().toEpochMilli()), ttl);
+        redisTemplate.opsForValue().set(key(userId), Long.toString(Instant.now().getEpochSecond()), ttl);
     }
 
     public boolean isRevoked(UUID userId, Instant tokenIssuedAt) {
@@ -27,8 +27,9 @@ public class AccessTokenRevocationService {
         if (value == null) {
             return false;
         }
-        Instant revokedAt = Instant.ofEpochMilli(Long.parseLong(value));
-        return !tokenIssuedAt.isAfter(revokedAt);
+
+        long revokedAtEpochSecond = Long.parseLong(value);
+        return tokenIssuedAt.getEpochSecond() < revokedAtEpochSecond;
     }
 
     private String key(UUID userId) {
